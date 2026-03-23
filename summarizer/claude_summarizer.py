@@ -55,6 +55,7 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
 
         prompt = f"""다음 AI 뉴스 기사 제목들을 보고 오늘의 핵심 트렌드 3가지를 한국어로 도출하세요.
 각 트렌드는 "• " 로 시작하는 1-2문장으로 작성하세요.
+#, **, *, _ 같은 마크다운 기호는 절대 사용하지 마세요. 순수 텍스트만 작성하세요.
 
 기사 목록:
 {titles}
@@ -66,4 +67,11 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
             max_tokens=512,
             messages=[{"role": "user", "content": prompt}],
         )
-        return msg.content[0].text.strip()
+        raw = msg.content[0].text.strip()
+        # 마크다운 기호 후처리 제거
+        import re
+        raw = re.sub(r'\*\*(.+?)\*\*', r'\1', raw)   # **볼드** → 볼드
+        raw = re.sub(r'\*(.+?)\*', r'\1', raw)        # *이탤릭* → 이탤릭
+        raw = re.sub(r'^#{1,6}\s*', '', raw, flags=re.MULTILINE)  # # 제목 제거
+        raw = re.sub(r'_(.+?)_', r'\1', raw)          # _밑줄_ → 밑줄
+        return raw
