@@ -49,3 +49,22 @@ def test_generate_txt_contains_article():
     txt = gen.generate_txt(SAMPLE)
     assert "GPT-5 출시" in txt
     assert "https://example.com/1" in txt
+
+def test_generate_html_escapes_special_chars():
+    gen = NewsletterGenerator()
+    data = {
+        "date": "2026-03-24",
+        "trends": "• <script>alert(1)</script>",
+        "articles": [{
+            "title": '<b>XSS & Test</b>',
+            "category": "기타",
+            "bullets": ["<test>"],
+            "implication": "imp",
+            "url": "https://example.com/1",
+            "label": "Test",
+            "region": "GL",
+        }]
+    }
+    html = gen.generate(data)
+    assert "<script>" not in html
+    assert "&lt;b&gt;" in html or "&lt;script&gt;" in html

@@ -1,29 +1,30 @@
+from html import escape
 from typing import Dict
 
 
 class NewsletterGenerator:
     def generate(self, data: Dict) -> str:
         """HTML 뉴스레터 생성."""
-        date = data["date"]
+        date = escape(data["date"])
         trends = data["trends"]
         articles = data["articles"]
 
         articles_html = ""
         for a in articles:
-            bullets_html = "".join(f"<li>{b}</li>" for b in a.get("bullets", []))
+            bullets_html = "".join(f"<li>{escape(b)}</li>" for b in a.get("bullets", []))
             articles_html += f"""
 <div style="margin-bottom:24px;padding:16px;border-left:4px solid #4f46e5;">
-  <h3 style="margin:0 0 8px;font-size:16px;">{a['title']}</h3>
+  <h3 style="margin:0 0 8px;font-size:16px;">{escape(a['title'])}</h3>
   <p style="margin:0 0 4px;font-size:12px;color:#6b7280;">
-    [{a.get('category','')}] {a.get('label','')} ({a.get('region','')})
+    [{escape(a.get('category',''))}] {escape(a.get('label',''))} ({escape(a.get('region',''))})
   </p>
   <ul style="margin:8px 0;padding-left:20px;">{bullets_html}</ul>
-  <p style="margin:8px 0 4px;font-style:italic;color:#374151;">\U0001f449 {a.get('implication','')}</p>
-  <a href="{a['url']}" style="font-size:12px;color:#4f46e5;">원문 보기 →</a>
+  <p style="margin:8px 0 4px;font-style:italic;color:#374151;">\U0001f449 {escape(a.get('implication',''))}</p>
+  <a href="{escape(a['url'])}" style="font-size:12px;color:#4f46e5;">원문 보기 →</a>
 </div>"""
 
         trends_html = "".join(
-            f"<li style='margin-bottom:8px;'>{t.lstrip('• ')}</li>"
+            f"<li style='margin-bottom:8px;'>{escape(t.lstrip('• '))}</li>"
             for t in trends.split("\n") if t.strip()
         )
 
