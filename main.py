@@ -26,9 +26,6 @@ from publisher.email_publisher import EmailPublisher
 from publisher.notion_publisher import NotionPublisher
 from publisher.sns_exporter import SNSExporter
 
-PREVIEW = "--preview" in sys.argv
-
-
 def load_seen_urls(trends_dir: Path, days: int = DEDUP_DAYS) -> set:
     seen = set()
     cutoff = datetime.now(ZoneInfo("Asia/Seoul")) - timedelta(days=days)
@@ -42,8 +39,8 @@ def load_seen_urls(trends_dir: Path, days: int = DEDUP_DAYS) -> set:
                 for line in f.read_text(encoding="utf-8").splitlines():
                     if line.strip().startswith("http"):
                         seen.add(line.strip())
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[WARN] trend 파일 파싱 실패: {f.name} — {e}")
     return seen
 
 
@@ -54,6 +51,7 @@ def prioritize(articles: list) -> list:
 
 
 def main():
+    preview = "--preview" in sys.argv
     KST = ZoneInfo("Asia/Seoul")
     today = datetime.now(KST).strftime("%Y-%m-%d")
     TRENDS_DIR.mkdir(exist_ok=True)
@@ -125,7 +123,7 @@ def main():
     instagram_post = InstagramGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
     print("    → 링크드인·스레드·인스타그램 완료")
 
-    if PREVIEW:
+    if preview:
         print("\n[PREVIEW 모드] 발행 건너뜀.")
         print(f"  뉴스레터: {trend_file}")
         print(f"  SNS 저장 예정: output/{today}/")
