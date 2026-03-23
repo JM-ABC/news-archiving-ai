@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+"""AI 콘텐츠 생성 에이전트 — 메인 파이프라인"""
+
+import sys
+import anthropic
+from datetime import datetime, timedelta
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from config.settings import (
+    CLAUDE_API_KEY, CLAUDE_MODEL,
+    NOTION_API_KEY, NOTION_DATABASE_ID,
+    RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC,
+    GSTACK_BINARY, TRENDS_DIR, OUTPUT_DIR,
+    KR_MAX, GL_MAX, MIN_NEW_ARTICLES, DEDUP_DAYS,
+)
+from config.feeds import RSS_FEEDS, CRAWL_TARGETS
+from collector.rss_collector import RSSCollector
+from collector.gstack_crawler import GstackCrawler
+from summarizer.claude_summarizer import ClaudeSummarizer
+from content_generator.newsletter import NewsletterGenerator
+from content_generator.linkedin import LinkedInGenerator
+from content_generator.threads import ThreadsGenerator
+from content_generator.instagram import InstagramGenerator
+from publisher.email_publisher import EmailPublisher
+from publisher.notion_publisher import NotionPublisher
+from publisher.sns_exporter import SNSExporter
+
+PREVIEW = "--preview" in sys.argv
+
+
+def load_seen_urls(trends_dir: Path, days: int = DEDUP_DAYS) -> set:
+    seen = set()
+    cutoff = datetime.now(ZoneInfo("Asia/Seoul")) - timedelta(days=days)
+    for f in sorted(trends_dir.glob("trend_*.txt")):
+        try:
+            date_str = f.stem.replace("trend_", "")
+            file_date = datetime.strptime(date_str, "%Y-%m-%d").replace(
+                tzinfo=ZoneInfo("Asia/Seoul")
+            )
+            if file_date >= cutoff:
+                for line in f.read_text(encoding="utf-8").splitlines():
+                    if line.strip().startswith("http"):
+                        seen.add(line.strip())
+        except Exception:
+            pass
+    return seen
+
+
+def prioritize(articles: list) -> list:
+    kr = [a for a in articles if a["region"] == "KR"][:KR_MAX]
+    gl = [a for a in articles if a["region"] == "GL"][:GL_MAX]
+    return kr + gl
+
+
+def main():
+    KST = ZoneInfo("Asia/Seoul")
+    today = datetime.now(KST).strftime("%Y-%m-%d")
+    TRENDS_DIR.mkdir(exist_ok=True)
+    OUTPUT_DIR.mkdir(exist_ok=True)
+
+    print(f"=== AI 뉴스 파이프라인 | {today} ===\n")
+
+    # 1/8 RSS 수집
+    print("1/8 RSS 피드 수집 중...")
+    rss_articles = RSSCollector(RSS_FEEDS).fetch()
+    print(f"    → {len(rss_articles)}개 수집")
+
+    # 2/8 gstack 크롤링
+    print("2/8 gstack 크롤링 중...")
+    crawled = GstackCrawler(binary_path=GSTACK_BINARY, targets=CRAWL_TARGETS).crawl()
+    print(f"    → {len(crawled)}개 수집")
+
+    # 3/8 중복 제거 + 우선순위
+    print("3/8 중복 제거 및 정렬 중...")
+    seen = load_seen_urls(TRENDS_DIR)
+    seen_in_run: set = set()
+    all_articles = []
+    for a in rss_articles + crawled:
+        if a["url"] not in seen and a["url"] not in seen_in_run:
+            seen_in_run.add(a["url"])
+            all_articles.append(a)
+    articles = prioritize(all_articles)
+    kr_n = sum(1 for a in articles if a["region"] == "KR")
+    gl_n = sum(1 for a in articles if a["region"] == "GL")
+    print(f"    → 신규 {len(articles)}개 (국내:{kr_n}, 글로벌:{gl_n})")
+
+    if len(articles) < MIN_NEW_ARTICLES:
+        print(f"\n신규 기사 {len(articles)}개 — {MIN_NEW_ARTICLES}개 미달. 발행 건너뜀.")
+        return
+
+    # Claude 클라이언트
+    claude_client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+    summarizer = ClaudeSummarizer(api_key=CLAUDE_API_KEY, model=CLAUDE_MODEL)
+
+    # 4/8 기사 요약
+    print("4/8 Claude 요약 중...")
+    summarized = summarizer.summarize(articles)
+    for i, art in enumerate(summarized):
+        if i < len(articles):
+            art.setdefault("label", articles[i].get("label", ""))
+            art.setdefault("region", articles[i].get("region", ""))
+    print(f"    → {len(summarized)}개 완료")
+
+    # 5/8 트렌드 도출
+    print("5/8 핵심 트렌드 도출 중...")
+    trends = summarizer.generate_trends(articles)
+    print("    → 완료")
+
+    data = {"date": today, "trends": trends, "articles": summarized}
+
+    # 6/8 뉴스레터 생성
+    print("6/8 뉴스레터 생성 중...")
+    gen = NewsletterGenerator()
+    html = gen.generate(data)
+    txt = gen.generate_txt(data)
+    trend_file = TRENDS_DIR / f"trend_{today}.txt"
+    trend_file.write_text(txt, encoding="utf-8")
+    print(f"    → {trend_file}")
+
+    # 7/8 SNS 콘텐츠 생성
+    print("7/8 SNS 콘텐츠 생성 중...")
+    linkedin_post = LinkedInGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
+    threads_post = ThreadsGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
+    instagram_post = InstagramGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
+    print("    → 링크드인·스레드·인스타그램 완료")
+
+    if PREVIEW:
+        print("\n[PREVIEW 모드] 발행 건너뜀.")
+        print(f"  뉴스레터: {trend_file}")
+        print(f"  SNS 저장 예정: output/{today}/")
+        return
+
+    # 8/8 발행
+    print("8/8 발행 중...")
+    SNSExporter(OUTPUT_DIR).export(today, linkedin_post, threads_post, instagram_post)
+    NotionPublisher(NOTION_API_KEY, NOTION_DATABASE_ID).upload(today, trends, summarized)
+    EmailPublisher(RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC).send(
+        subject=f"AI 뉴스 | {today}", html=html
+    )
+    print("\n파이프라인 완료!")
+
+
+if __name__ == "__main__":
+    main()
