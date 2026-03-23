@@ -32,7 +32,7 @@ else:
     if GSTACK_BINARY is None:
         import warnings
         warnings.warn(
-            "gstack binary not found — web crawling will be skipped. "
+            "gstack binary not found - web crawling will be skipped. "
             "Run: cd ~/.claude/skills/gstack && ./setup",
             stacklevel=2,
         )

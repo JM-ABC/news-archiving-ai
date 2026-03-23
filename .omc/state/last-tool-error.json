@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls \\\"c:/Users/USER/Desktop/뉴스아카이빙_AI/output/2026-03-24/\\\"\",\"description\":\"SNS 출력 파일 목록 확인\"}",
+  "error": "Exit code 2\nls: cannot access 'c:/Users/USER/Desktop/뉴스아카이빙_AI/output/2026-03-24/': No such file or directory",
+  "timestamp": "2026-03-23T23:06:44.202Z",
+  "retry_count": 2
+}

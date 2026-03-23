@@ -12,7 +12,7 @@ class GstackCrawler:
     def crawl(self) -> List[Dict]:
         if not self.binary:
             if self.targets:
-                print("[gstack] 바이너리 없음 — 크롤링 건너뜀")
+                print("[gstack] 바이너리 없음 - 크롤링 건너뜀")
             return []
 
         articles = []
@@ -29,7 +29,7 @@ class GstackCrawler:
                         seen_urls.add(art["url"])
                         articles.append(art)
             except FileNotFoundError:
-                print("[gstack] 바이너리 없음 — 크롤링 건너뜀")
+                print("[gstack] 바이너리 없음 - 크롤링 건너뜀")
                 binary_ok = False
             except Exception as e:
                 print(f"[gstack] {target['label']} 크롤링 실패: {e}")

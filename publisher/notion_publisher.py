@@ -8,7 +8,7 @@ class NotionPublisher:
 
     def upload(self, date: str, trends: str, articles: List[Dict]) -> bool:
         if not self._api_key or not self.database_id:
-            print("[notion] 설정 없음 — 건너뜀")
+            print("[notion] 설정 없음 - 건너뜀")
             return False
         try:
             from notion_client import Client

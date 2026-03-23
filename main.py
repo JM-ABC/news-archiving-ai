@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AI 콘텐츠 생성 에이전트 — 메인 파이프라인"""
+"""AI 콘텐츠 생성 에이전트 - 메인 파이프라인"""
 
 import sys
 import anthropic
@@ -40,7 +40,7 @@ def load_seen_urls(trends_dir: Path, days: int = DEDUP_DAYS) -> set:
                     if line.strip().startswith("http"):
                         seen.add(line.strip())
         except Exception as e:
-            print(f"[WARN] trend 파일 파싱 실패: {f.name} — {e}")
+            print(f"[WARN] trend 파일 파싱 실패: {f.name} - {e}")
     return seen
 
 
@@ -84,7 +84,7 @@ def main():
     print(f"    → 신규 {len(articles)}개 (국내:{kr_n}, 글로벌:{gl_n})")
 
     if len(articles) < MIN_NEW_ARTICLES:
-        print(f"\n신규 기사 {len(articles)}개 — {MIN_NEW_ARTICLES}개 미달. 발행 건너뜀.")
+        print(f"\n신규 기사 {len(articles)}개 - {MIN_NEW_ARTICLES}개 미달. 발행 건너뜀.")
         return
 
     # Claude 클라이언트

@@ -39,7 +39,7 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         )
         raw = msg.content[0].text.strip()
 
-        # JSON 파싱 — 코드블록 제거 후 재시도
+        # JSON 파싱 - 코드블록 제거 후 재시도
         try:
             return json.loads(raw)
         except json.JSONDecodeError:

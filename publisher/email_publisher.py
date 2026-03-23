@@ -10,7 +10,7 @@ class EmailPublisher:
 
     def send(self, subject: str, html: str) -> bool:
         if not self._api_key:
-            print("[email] API 키 없음 — 건너뜀")
+            print("[email] API 키 없음 - 건너뜀")
             return False
         try:
             import resend
