@@ -29,6 +29,13 @@ else:
         BASE_DIR / ".claude/skills/gstack/browse/dist/browse",
     ]
     GSTACK_BINARY = next((p for p in _candidates if p.exists()), None)
+    if GSTACK_BINARY is None:
+        import warnings
+        warnings.warn(
+            "gstack binary not found — web crawling will be skipped. "
+            "Run: cd ~/.claude/skills/gstack && ./setup",
+            stacklevel=2,
+        )
 
 KR_MAX = 13
 GL_MAX = 7
