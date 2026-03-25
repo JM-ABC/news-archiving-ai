@@ -48,3 +48,20 @@ def test_generate_trends_returns_empty_for_no_articles():
     summarizer = ClaudeSummarizer(api_key="test", model="test")
     result = summarizer.generate_trends([])
     assert result == ""
+
+def test_generate_tip_returns_string(monkeypatch):
+    """generate_tip이 문자열을 반환하는지 확인."""
+    from unittest.mock import MagicMock
+    summarizer = ClaudeSummarizer(api_key="test", model="test-model")
+    mock_msg = MagicMock()
+    mock_msg.content = [MagicMock(text="Claude 오토 모드, 링크드인 프로필 요약에 써보세요.")]
+    monkeypatch.setattr(summarizer._client.messages, "create", lambda **kw: mock_msg)
+    articles = [{"title": "Claude 오토 모드 출시", "bullets": ["자동화 향상"], "implication": "생산성 향상", "category": "모델 출시"}]
+    result = summarizer.generate_tip(articles)
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+def test_generate_tip_empty_articles():
+    """기사가 없으면 빈 문자열 반환."""
+    summarizer = ClaudeSummarizer(api_key="test", model="test-model")
+    assert summarizer.generate_tip([]) == ""
