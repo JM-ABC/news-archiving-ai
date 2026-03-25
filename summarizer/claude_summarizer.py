@@ -112,4 +112,5 @@ AI 팁:"""
         raw = re.sub(r'\*\*(.+?)\*\*', r'\1', raw)
         raw = re.sub(r'\*(.+?)\*', r'\1', raw)
         raw = re.sub(r'^#{1,6}\s*', '', raw, flags=re.MULTILINE)
+        raw = re.sub(r'_(.+?)_', r'\1', raw)
         return raw
