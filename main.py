@@ -105,7 +105,14 @@ def main():
     trends = summarizer.generate_trends(articles)
     print("    → 완료")
 
-    data = {"date": today, "trends": trends, "articles": summarized}
+    tip = summarizer.generate_tip(summarized)
+    data = {
+        "date": today,
+        "trends": trends,
+        "articles": summarized,
+        "tip": tip,
+        "email_from": EMAIL_FROM or "",
+    }
 
     # 6/8 뉴스레터 생성
     print("6/8 뉴스레터 생성 중...")
