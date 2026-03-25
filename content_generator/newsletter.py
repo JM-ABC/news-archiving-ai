@@ -11,6 +11,8 @@ class NewsletterGenerator:
 
         articles_html = ""
         for a in articles:
+            if a.get("category") == "기타":
+                continue
             bullets_html = "".join(f"<li>{escape(b)}</li>" for b in a.get("bullets", []))
             articles_html += f"""
 <div style="margin-bottom:24px;padding:16px;border-left:4px solid #4f46e5;">
@@ -51,8 +53,10 @@ class NewsletterGenerator:
         lines += [t for t in trends.split("\n") if t.strip()]
         lines += ["", "---"]
 
-        for a in articles:
-            lines.append(f"\n① {a['title']}")
+        for i, a in enumerate(articles):
+            if a.get("category") == "기타":
+                continue
+            lines.append(f"\n{i+1}. {a['title']}")
             lines.append(f"   출처: {a.get('label','')} ({a.get('region','')})")
             for b in a.get("bullets", []):
                 lines.append(f"   - {b}")

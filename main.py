@@ -37,8 +37,13 @@ def load_seen_urls(trends_dir: Path, days: int = DEDUP_DAYS) -> set:
             )
             if file_date >= cutoff:
                 for line in f.read_text(encoding="utf-8").splitlines():
-                    if line.strip().startswith("http"):
-                        seen.add(line.strip())
+                    stripped = line.strip()
+                    if stripped.startswith("http"):
+                        seen.add(stripped)
+                    elif stripped.startswith("원문:"):
+                        url_part = stripped[len("원문:"):].strip()
+                        if url_part.startswith("http"):
+                            seen.add(url_part)
         except Exception as e:
             print(f"[WARN] trend 파일 파싱 실패: {f.name} - {e}")
     return seen
@@ -116,6 +121,24 @@ def main():
     trend_file.write_text(txt, encoding="utf-8")
     print(f"    → {trend_file}")
 
+    # 주제 선택 (--interactive 모드)
+    interactive = "--interactive" in sys.argv
+    if interactive:
+        print("\n주제 각도 분석 중...")
+        topics = summarizer.propose_topics(summarized)
+        print("\n오늘 뉴스에서 집중할 주제를 선택하세요:\n")
+        for t in topics:
+            print(f"  {t}")
+        print()
+        choice = input("번호를 입력하세요 (기본값: 자동 선택): ").strip()
+        focus_topic = ""
+        if choice.isdigit():
+            idx = int(choice) - 1
+            if 0 <= idx < len(topics):
+                focus_topic = topics[idx]
+                print(f"\n선택: {focus_topic}\n")
+        data["focus_topic"] = focus_topic
+
     # 7/8 SNS 콘텐츠 생성
     print("7/8 SNS 콘텐츠 생성 중...")
     linkedin_post = LinkedInGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
@@ -123,15 +146,16 @@ def main():
     instagram_post = InstagramGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
     print("    → 링크드인·스레드·인스타그램 완료")
 
+    # SNS 파일 저장 (preview 포함 항상)
+    SNSExporter(OUTPUT_DIR).export(today, linkedin_post, threads_post, instagram_post)
+
     if preview:
-        print("\n[PREVIEW 모드] 발행 건너뜀.")
+        print("\n[PREVIEW 모드] 이메일·Notion 건너뜀.")
         print(f"  뉴스레터: {trend_file}")
-        print(f"  SNS 저장 예정: output/{today}/")
+        print(f"  SNS 저장: output/{today}/")
         return
 
     # 8/8 발행
-    print("8/8 발행 중...")
-    SNSExporter(OUTPUT_DIR).export(today, linkedin_post, threads_post, instagram_post)
     NotionPublisher(NOTION_API_KEY, NOTION_DATABASE_ID).upload(today, trends, summarized)
     EmailPublisher(RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC).send(
         subject=f"AI 뉴스 | {today}", html=html
