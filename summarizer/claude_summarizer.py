@@ -75,3 +75,41 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         raw = re.sub(r'^#{1,6}\s*', '', raw, flags=re.MULTILINE)  # # 제목 제거
         raw = re.sub(r'_(.+?)_', r'\1', raw)          # _밑줄_ → 밑줄
         return raw
+
+    def generate_tip(self, articles: List[Dict]) -> str:
+        """오늘 기사 중 30-40대 직장인이 바로 써먹을 수 있는 AI 팁 1-2문장 생성."""
+        if not articles:
+            return ""
+
+        articles_text = "\n".join(
+            f"- {a['title']}: {' / '.join(a.get('bullets', [])[:2])}"
+            for a in articles
+            if a.get("category") != "기타"
+        )
+        if not articles_text:
+            return ""
+
+        prompt = f"""다음 AI 뉴스 기사들 중 하나를 골라, 30-40대 직장인이 오늘 당장 써먹을 수 있는 구체적인 AI 활용 팁을 1-2문장으로 작성하세요.
+
+조건:
+- 특정 도구나 기능명을 명시할 것
+- "이렇게 써보세요" 같은 실전 행동 지침 포함
+- 마크다운 기호(#, **, *) 사용 금지
+- 예시: "오늘 소개된 Claude 오토 모드, 링크드인 프로필 초안 작성에 써보세요. 프롬프트: '내 경력을 보여줄게, 3줄로 요약해줘'"
+
+기사 목록:
+{articles_text}
+
+AI 팁:"""
+
+        msg = self._client.messages.create(
+            model=self.model,
+            max_tokens=200,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = msg.content[0].text.strip()
+        import re
+        raw = re.sub(r'\*\*(.+?)\*\*', r'\1', raw)
+        raw = re.sub(r'\*(.+?)\*', r'\1', raw)
+        raw = re.sub(r'^#{1,6}\s*', '', raw, flags=re.MULTILINE)
+        return raw
