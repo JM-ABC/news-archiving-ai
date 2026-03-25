@@ -1,4 +1,5 @@
 from html import escape
+from urllib.parse import quote
 from typing import Dict
 
 
@@ -81,8 +82,8 @@ class NewsletterGenerator:
                 if email_from:
                     vote_link = (
                         f'<a href="mailto:{escape(email_from)}'
-                        f'?subject={escape("AI뉴스 투표 " + data["date"])}'
-                        f'&body={escape(str(i+1) + "번 기사 선택")}"'
+                        f'?subject={quote("AI뉴스 투표 " + data["date"])}'
+                        f'&body={quote(str(i+1) + "번 기사 선택")}"'
                         f' style="font-size:10px;color:#10b981;font-weight:700;text-decoration:none;">👍 이 기사 선택</a>'
                     )
                 cards += f"""
