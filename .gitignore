@@ -6,3 +6,5 @@ output/
 trends/
 *.html
 .omc/
+.worktrees/
+.superpowers/
