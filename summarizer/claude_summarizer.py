@@ -23,8 +23,8 @@ class ClaudeSummarizer:
 각 기사에 대해:
 - title: 한국어 제목 (원문이 영어면 번역)
 - category: 소카테고리 (모델 출시/연구/규제/산업응용/인프라/기타 중 하나)
-- bullets: 핵심 내용 3개 (각 50자 이내 한국어, 구체적 수치·기업명 포함)
-- implication: 산업 시사점 1문장 (40자 이내)
+- bullets: 핵심 내용 3개 (각 50자 이내 한국어, ~어요/에요 어체, 구체적 수치·기업명 포함)
+- implication: 산업 시사점 1문장 (40자 이내, ~어요/에요 어체)
 - url: 원문 URL (그대로)
 
 기사 목록:
@@ -115,10 +115,10 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         raw = re.sub(r'_(.+?)_', r'\1', raw)          # _밑줄_ → 밑줄
         return raw
 
-    def generate_tip(self, articles: List[Dict]) -> str:
-        """오늘 기사 중 30-40대 직장인이 바로 써먹을 수 있는 AI 팁 1-2문장 생성."""
+    def generate_tip(self, articles: List[Dict]) -> dict:
+        """창의적인 AI 자동화 팁 생성. task/tools/prompt dict 반환."""
         if not articles:
-            return ""
+            return {}
 
         articles_text = "\n".join(
             f"- {a['title']}: {' / '.join(a.get('bullets', [])[:2])}"
@@ -126,30 +126,54 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
             if a.get("category") != "기타"
         )
         if not articles_text:
-            return ""
+            return {}
 
-        prompt = f"""다음 AI 뉴스 기사들 중 하나를 골라, 30-40대 직장인이 오늘 당장 써먹을 수 있는 구체적인 AI 활용 팁을 1-2문장으로 작성하세요.
+        prompt = f"""다음 AI 뉴스 기사들을 참고해서, 30-40대 직장인이 Claude·ChatGPT·Claude Code·Zapier·n8n 등 AI 도구로 지금 바로 자동화할 수 있는 창의적인 업무 워크플로우를 하나 제안해줘.
+
+오늘 기사에서 영감을 얻되, 기사 내용에 얽매이지 말고 자유롭게 아이디어를 내도 돼.
+
+아래 JSON 형식으로만 반환해 (마크다운 코드블록 없이):
+{{
+  "task": "자동화 아이디어 설명 2-3문장 (~어요/에요 어체)",
+  "tools": ["툴1", "툴2"],
+  "prompt": "그 툴에 복붙할 수 있는 구체적 프롬프트 (한국어)"
+}}
 
 조건:
-- 특정 도구나 기능명을 명시할 것
-- "이렇게 써보세요" 같은 실전 행동 지침 포함
+- task는 2-3문장, ~어요/에요 어체 사용
+- tools는 1-3개 배열
+- prompt는 실제로 Claude나 ChatGPT에 그대로 입력 가능한 구체적 문장
 - 마크다운 기호(#, **, *) 사용 금지
-- 예시: "오늘 소개된 Claude 오토 모드, 링크드인 프로필 초안 작성에 써보세요. 프롬프트: '내 경력을 보여줄게, 3줄로 요약해줘'"
 
 기사 목록:
 {articles_text}
 
-AI 팁:"""
+JSON:"""
 
         msg = self._client.messages.create(
             model=self.model,
-            max_tokens=200,
+            max_tokens=600,
             messages=[{"role": "user", "content": prompt}],
         )
         raw = msg.content[0].text.strip()
+
+        try:
+            result = json.loads(raw)
+        except json.JSONDecodeError:
+            raw = raw.replace("```json", "").replace("```", "").strip()
+            try:
+                result = json.loads(raw)
+            except json.JSONDecodeError:
+                return {}
+
         import re
-        raw = re.sub(r'\*\*(.+?)\*\*', r'\1', raw)
-        raw = re.sub(r'\*(.+?)\*', r'\1', raw)
-        raw = re.sub(r'^#{1,6}\s*', '', raw, flags=re.MULTILINE)
-        raw = re.sub(r'_(.+?)_', r'\1', raw)
-        return raw
+        for field in ("task", "prompt"):
+            if field in result and isinstance(result[field], str):
+                v = result[field]
+                v = re.sub(r'\*\*(.+?)\*\*', r'\1', v)
+                v = re.sub(r'\*(.+?)\*', r'\1', v)
+                v = re.sub(r'^#{1,6}\s*', '', v, flags=re.MULTILINE)
+                v = re.sub(r'_(.+?)_', r'\1', v)
+                result[field] = v
+
+        return result
