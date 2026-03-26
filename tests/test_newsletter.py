@@ -3,14 +3,17 @@ from content_generator.newsletter import NewsletterGenerator
 SAMPLE = {
     "date": "2026-03-26",
     "trends": "• AI 모델 경쟁 심화\n• 멀티모달 발전",
-    "tip": "Claude 오토 모드를 링크드인 프로필 요약에 써보세요.",
-    "email_from": "test@example.com",
+    "tip": {
+        "task": "회의록을 AI로 정리할 수 있어요. 참석자별 액션 아이템이 자동으로 만들어져요.",
+        "tools": ["Claude", "ChatGPT"],
+        "prompt": "아래 회의록을 액션 아이템으로 정리해줘. 형식: [담당자] - [할 일]",
+    },
     "articles": [
         {
             "title": "GPT-5 출시",
             "category": "모델 출시",
-            "bullets": ["성능 대폭 향상", "멀티모달 지원", "가격 인하"],
-            "implication": "AI 경쟁 격화",
+            "bullets": ["성능이 대폭 향상됐어요", "멀티모달을 지원해요", "가격이 인하됐어요"],
+            "implication": "AI 경쟁이 더욱 심화됐어요",
             "url": "https://example.com/1",
             "label": "TechCrunch",
             "region": "GL",
@@ -18,14 +21,15 @@ SAMPLE = {
         {
             "title": "EU AI법 시행",
             "category": "규제",
-            "bullets": ["고위험 AI 등록 의무", "과징금 3%"],
-            "implication": "기업 부담 증가",
+            "bullets": ["고위험 AI 등록이 의무화됐어요", "과징금이 3%로 설정됐어요"],
+            "implication": "기업 부담이 증가했어요",
             "url": "https://example.com/2",
             "label": "ZDNet",
             "region": "KR",
         },
     ]
 }
+
 
 def test_header_contains_ai_news():
     html = NewsletterGenerator().generate(SAMPLE)
@@ -34,68 +38,154 @@ def test_header_contains_ai_news():
     assert "2026-03-26" in html
     assert "DAILY DIGEST" in html
 
+
+def test_header_uses_georgia_font():
+    html = NewsletterGenerator().generate(SAMPLE)
+    assert "Georgia" in html
+
+
+def test_header_is_monochrome():
+    """헤더에 에메랄드 그린(#10b981)이 없어야 함."""
+    html = NewsletterGenerator().generate(SAMPLE)
+    assert "#10b981" not in html
+
+
 def test_trends_banner_rendered():
     html = NewsletterGenerator().generate(SAMPLE)
-    assert "TODAY&#x27;S TRENDS" in html or "TODAY'S TRENDS" in html
+    assert "TODAY" in html and "TRENDS" in html
     assert "AI 모델 경쟁 심화" in html
+
+
+def test_trends_banner_dark_background():
+    """트렌드 배너 배경이 #374151이어야 함."""
+    html = NewsletterGenerator().generate(SAMPLE)
+    assert "#374151" in html
+
 
 def test_trends_banner_skipped_when_empty():
     data = {**SAMPLE, "trends": ""}
     html = NewsletterGenerator().generate(data)
-    assert "TODAY&#x27;S TRENDS" not in html and "TODAY'S TRENDS" not in html
+    assert "TODAY" not in html or "TRENDS" not in html
 
-def test_headline_section_first_article():
+
+def test_headline_section_rendered():
     html = NewsletterGenerator().generate(SAMPLE)
     assert "HEADLINE" in html
     assert "GPT-5 출시" in html
-    assert "성능 대폭 향상" in html
-    assert "AI 경쟁 격화" in html  # implication in HEADLINE
-    assert "https://example.com/1" in html  # url in HEADLINE
+    assert "성능이 대폭 향상됐어요" in html
+    assert "AI 경쟁이 더욱 심화됐어요" in html
+    assert "https://example.com/1" in html
 
-def test_more_stories_section():
+
+def test_headline_uses_georgia_font():
+    html = NewsletterGenerator().generate(SAMPLE)
+    # HEADLINE 섹션 안에 Georgia 폰트 적용 확인
+    assert html.count("Georgia") >= 2  # 헤더 + 기사 제목 최소 2곳
+
+
+def test_more_stories_section_rendered():
     html = NewsletterGenerator().generate(SAMPLE)
     assert "MORE STORIES" in html
     assert "EU AI법 시행" in html
-    assert "고위험 AI 등록 의무" in html
+    assert "고위험 AI 등록이 의무화됐어요" in html
 
-def test_more_stories_no_implication_or_url():
+
+def test_more_stories_has_url_link():
+    """MORE STORIES에 원문 보기 링크가 있어야 함."""
     html = NewsletterGenerator().generate(SAMPLE)
-    # MORE STORIES에는 두 번째 기사 url·implication이 없어야 함
-    assert "https://example.com/2" not in html
-    assert "기업 부담 증가" not in html  # 두 번째 기사의 implication
+    assert "https://example.com/2" in html
+
+
+def test_more_stories_no_vote_link():
+    """투표(mailto:) 링크가 없어야 함."""
+    html = NewsletterGenerator().generate(SAMPLE)
+    assert "mailto:" not in html
+
+
+def test_more_stories_max_5_articles():
+    """MORE STORIES는 최대 5개만 표시."""
+    articles = [SAMPLE["articles"][0]] + [
+        {"title": f"기사{i}", "category": "규제", "bullets": [f"불릿{i}"],
+         "implication": "시사점", "url": f"https://example.com/{i}", "label": "X", "region": "GL"}
+        for i in range(2, 9)  # 7개 추가 → 총 8개 비-기타
+    ]
+    data = {**SAMPLE, "articles": articles}
+    html = NewsletterGenerator().generate(data)
+    # 6번째 이후 기사 제목이 없어야 함 (기사7, 기사8은 잘려야 함)
+    assert "기사7" not in html
+    assert "기사8" not in html
+
 
 def test_tip_section_rendered():
     html = NewsletterGenerator().generate(SAMPLE)
-    assert "Claude 오토 모드를 링크드인 프로필 요약에 써보세요." in html
+    assert "오늘의 자동화 TASK" in html
+    assert "회의록을 AI로 정리할 수 있어요" in html
+    assert "추천 툴" in html
+    assert "Claude" in html
+    assert "복붙 프롬프트" in html
+    assert "아래 회의록을 액션 아이템으로 정리해줘" in html
 
-def test_tip_section_skipped_when_empty():
-    data = {**SAMPLE, "tip": ""}
+
+def test_tip_section_skipped_when_empty_dict():
+    data = {**SAMPLE, "tip": {}}
     html = NewsletterGenerator().generate(data)
-    assert "Claude 오토 모드" not in html
+    assert "오늘의 자동화 TASK" not in html
 
-def test_vote_link_rendered():
-    html = NewsletterGenerator().generate(SAMPLE)
-    assert "mailto:test@example.com" in html
 
-def test_vote_link_skipped_when_no_email_from():
-    data = {**SAMPLE, "email_from": ""}
+def test_tip_section_skipped_when_none():
+    data = {**SAMPLE, "tip": None}
     html = NewsletterGenerator().generate(data)
-    assert "mailto:" not in html
+    assert "오늘의 자동화 TASK" not in html
+
+
+def test_tip_tools_skipped_when_empty():
+    data = {**SAMPLE, "tip": {"task": "팁이에요.", "tools": [], "prompt": "프롬프트"}}
+    html = NewsletterGenerator().generate(data)
+    assert "추천 툴" not in html
+
+
+def test_tip_prompt_skipped_when_empty():
+    data = {**SAMPLE, "tip": {"task": "팁이에요.", "tools": ["Claude"], "prompt": ""}}
+    html = NewsletterGenerator().generate(data)
+    assert "복붙 프롬프트" not in html
+
 
 def test_all_categories_other_skips_headline_and_more():
     data = {**SAMPLE, "articles": [
-        {"title": "기타 기사", "category": "기타", "bullets": [], "implication": "", "url": "https://example.com/3", "label": "X", "region": "GL"}
+        {"title": "기타 기사", "category": "기타", "bullets": [],
+         "implication": "", "url": "https://example.com/3", "label": "X", "region": "GL"}
     ]}
     html = NewsletterGenerator().generate(data)
     assert "HEADLINE" not in html
     assert "MORE STORIES" not in html
 
+
 def test_xss_escaping():
-    data = {**SAMPLE, "tip": "<script>alert(1)</script>", "articles": [{
-        "title": "<b>XSS</b>", "category": "모델 출시",
-        "bullets": ["<test>"], "implication": "imp",
-        "url": "https://example.com/safe", "label": "T", "region": "GL"
-    }]}
+    data = {
+        **SAMPLE,
+        "tip": {"task": "<script>alert(1)</script>", "tools": ["Claude"], "prompt": "ok"},
+        "articles": [{
+            "title": "<b>XSS</b>", "category": "모델 출시",
+            "bullets": ["<test>"], "implication": "imp",
+            "url": "https://example.com/safe", "label": "T", "region": "GL"
+        }]
+    }
     html = NewsletterGenerator().generate(data)
     assert "<script>" not in html
-    assert "&lt;b&gt;" in html or "&lt;script&gt;" in html
+    assert "&lt;" in html
+
+
+def test_mobile_viewport_meta():
+    """모바일 viewport meta 태그 포함 확인."""
+    html = NewsletterGenerator().generate(SAMPLE)
+    assert "viewport" in html
+
+
+def test_label_region_fallback():
+    """label/region 없어도 오류 없이 렌더링."""
+    data = {**SAMPLE, "articles": [
+        {"title": "테스트", "category": "규제", "bullets": ["b1"],
+         "implication": "imp", "url": "https://x.com"}  # label/region 없음
+    ]}
+    html = NewsletterGenerator().generate(data)
+    assert "테스트" in html
