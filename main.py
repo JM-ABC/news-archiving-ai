@@ -116,7 +116,6 @@ def main():
         "trends": trends,
         "articles": summarized,
         "tip": tip,
-        "email_from": EMAIL_FROM or "",
     }
 
     # 6/8 뉴스레터 생성
