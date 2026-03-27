@@ -33,8 +33,8 @@ class NewsletterGenerator:
 
         # 기사 분류
         valid = [a for a in articles if a.get("category") != "기타"]
-        headline_article = valid[0] if valid else None
-        more_articles = valid[1:6] if len(valid) > 1 else []
+        headline_article = max(valid, key=lambda a: a.get("score", 0)) if valid else None
+        more_articles = [a for a in valid if a is not headline_article][:5]
 
         # HEADLINE 섹션
         if headline_article:

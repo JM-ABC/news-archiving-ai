@@ -17,6 +17,7 @@ SAMPLE = {
             "url": "https://example.com/1",
             "label": "TechCrunch",
             "region": "GL",
+            "score": 7,
         },
         {
             "title": "EU AI법 시행",
@@ -26,6 +27,7 @@ SAMPLE = {
             "url": "https://example.com/2",
             "label": "ZDNet",
             "region": "KR",
+            "score": 5,
         },
     ]
 }
@@ -189,3 +191,63 @@ def test_label_region_fallback():
     ]}
     html = NewsletterGenerator().generate(data)
     assert "테스트" in html
+
+
+def test_headline_is_highest_score():
+    """가장 높은 score 기사가 헤드라인으로 선정되어야 함."""
+    articles = [
+        {
+            "title": "낮은점수기사",
+            "category": "규제",
+            "bullets": ["b1"],
+            "implication": "imp",
+            "url": "https://example.com/low",
+            "label": "A",
+            "region": "KR",
+            "score": 3,
+        },
+        {
+            "title": "높은점수기사",
+            "category": "모델 출시",
+            "bullets": ["b2"],
+            "implication": "imp",
+            "url": "https://example.com/high",
+            "label": "B",
+            "region": "GL",
+            "score": 9,
+        },
+    ]
+    data = {**SAMPLE, "articles": articles}
+    html = NewsletterGenerator().generate(data)
+    headline_pos = html.index("높은점수기사")
+    more_pos = html.index("낮은점수기사")
+    assert headline_pos < more_pos  # 헤드라인이 MORE STORIES보다 먼저 등장
+
+
+def test_headline_not_in_more_stories():
+    """헤드라인 기사가 MORE STORIES에 중복 노출되지 않아야 함."""
+    articles = [
+        {
+            "title": "최고기사",
+            "category": "모델 출시",
+            "bullets": ["b"],
+            "implication": "imp",
+            "url": "https://example.com/best",
+            "label": "X",
+            "region": "GL",
+            "score": 10,
+        },
+        {
+            "title": "보통기사",
+            "category": "규제",
+            "bullets": ["b"],
+            "implication": "imp",
+            "url": "https://example.com/ok",
+            "label": "Y",
+            "region": "KR",
+            "score": 5,
+        },
+    ]
+    data = {**SAMPLE, "articles": articles}
+    html = NewsletterGenerator().generate(data)
+    assert html.count("최고기사") == 1  # 헤드라인에만 1번 등장
