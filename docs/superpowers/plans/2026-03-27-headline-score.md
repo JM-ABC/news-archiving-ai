@@ -111,7 +111,7 @@ cd "c:\Users\USER\Desktop\뉴스아카이빙_AI" && git add summarizer/claude_su
 ## Task 2: newsletter.py — score 기반 헤드라인 선정
 
 **Files:**
-- Modify: `content_generator/newsletter.py:31-34`
+- Modify: `content_generator/newsletter.py:35-37`
 - Test: `tests/test_newsletter.py`
 
 ### 2-1. 테스트 먼저 수정 (failing)
