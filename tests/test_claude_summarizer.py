@@ -17,13 +17,15 @@ def _make_mock_client(response_text: str):
 
 def test_summarize_returns_list():
     summarizer = ClaudeSummarizer(api_key="test", model="claude-haiku-4-5-20251001")
-    fake_response = '[{"title":"GPT-5 출시","category":"모델 출시","bullets":["성능이 향상됐어요","멀티모달을 지원해요"],"implication":"AI 경쟁이 심화됐어요","url":"https://example.com/1"}]'
+    fake_response = '[{"title":"GPT-5 출시","category":"모델 출시","bullets":["성능이 향상됐어요","멀티모달을 지원해요"],"implication":"AI 경쟁이 심화됐어요","url":"https://example.com/1","score":8}]'
     summarizer._client = _make_mock_client(fake_response)
     result = summarizer.summarize(SAMPLE_ARTICLES[:1])
     assert isinstance(result, list)
     assert result[0]["title"] == "GPT-5 출시"
     assert result[0]["category"] == "모델 출시"
     assert isinstance(result[0]["bullets"], list)
+    assert isinstance(result[0]["score"], int)
+    assert result[0]["score"] == 8
 
 def test_summarize_handles_json_with_code_block():
     summarizer = ClaudeSummarizer(api_key="test", model="claude-haiku-4-5-20251001")
