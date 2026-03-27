@@ -17,12 +17,15 @@ class NewsletterGenerator:
                 for t in trends_raw.split("\n")
                 if t.strip()
             ]
-            trends_inline = escape(" · ".join(trend_items))
+            trends_lines = "<br>".join(
+                f'<span style="font-weight:400;color:rgba(229,231,235,0.7);font-size:9px;letter-spacing:0;">• {escape(t)}</span>'
+                for t in trend_items
+            )
             trends_banner = f"""
 <div style="background:#374151;padding:10px 28px;">
   <div style="font-size:9px;font-weight:900;letter-spacing:2px;color:#e5e7eb;font-family:'Segoe UI',Arial,sans-serif;line-height:1.8;word-break:keep-all;">
     🔑 TODAY&#x27;S TRENDS<br>
-    <span style="font-weight:400;color:rgba(229,231,235,0.7);font-size:9px;letter-spacing:0;">{trends_inline}</span>
+    {trends_lines}
   </div>
 </div>"""
         else:
