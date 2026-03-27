@@ -129,3 +129,24 @@ def test_generate_tip_uses_category():
 
     category_names = [c["name"] for c in TIP_CATEGORIES]
     assert any(name in captured_prompt["content"] for name in category_names)
+
+
+def test_generate_tip_prompt_contains_style_rules():
+    """프롬프트에 스타일 규칙 키워드가 포함되는지 확인."""
+    summarizer = ClaudeSummarizer(api_key="test", model="test-model")
+    captured_prompt = {}
+
+    def capture_call(**kwargs):
+        captured_prompt["content"] = kwargs["messages"][0]["content"]
+        mock_msg = MagicMock()
+        mock_msg.content = [MagicMock(text='{"task": "t", "tools": ["Claude"], "prompt": "p"}')]
+        return mock_msg
+
+    summarizer._client = MagicMock()
+    summarizer._client.messages.create.side_effect = capture_call
+
+    articles = [{"title": "AI 뉴스", "bullets": ["내용"], "category": "모델 출시"}]
+    summarizer.generate_tip(articles)
+
+    assert "어요/에요" in captured_prompt["content"]
+    assert "Claude Code" in captured_prompt["content"]

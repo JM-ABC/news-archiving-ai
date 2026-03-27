@@ -185,12 +185,12 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         import random
         selected_category = random.choice(TIP_CATEGORIES)
 
-        prompt = f"""다음 AI 뉴스 기사들을 참고해서, 30-40대 직장인이 Claude·ChatGPT·Claude Code·Zapier·n8n 등 AI 도구로 지금 바로 자동화할 수 있는 창의적인 업무 워크플로우를 하나 제안해줘.
+        prompt = f"""오늘의 AI 팁 카테고리: {selected_category["name"]}
+난이도: {selected_category["difficulty"]}
+참고 예시: {selected_category["example"]}
 
-카테고리: {selected_category["name"]}
-예시: {selected_category["example"]}
-
-오늘 기사에서 영감을 얻되, 기사 내용에 얽매이지 말고 자유롭게 아이디어를 내도 돼.
+위 카테고리에서 30-40대 직장인이 지금 바로 실행 가능한 AI 활용법을 하나 제안해줘.
+오늘 뉴스 (참고만, 얽매이지 말 것): {articles_text}
 
 아래 JSON 형식으로만 반환해 (마크다운 코드블록 없이):
 {{
@@ -199,14 +199,12 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
   "prompt": "그 툴에 복붙할 수 있는 구체적 프롬프트 (한국어)"
 }}
 
-조건:
-- task는 2-3문장, ~어요/에요 어체 사용
-- tools는 1-3개 배열
-- prompt는 실제로 Claude나 ChatGPT에 그대로 입력 가능한 구체적 문장
+스타일 규칙:
+- task: "상황 묘사 → Claude/Claude Code가 해결 → 실용적 이점" 3문장, ~어요/에요 어체
+- prompt: 경로·조건만 구체적으로, 짧고 직관적하게
+- 전문 용어 설명 불필요 ("Python인지 몰라도 돼요" 같은 안심 문구 가끔 사용)
+- difficulty가 claude-code이면 tools에 반드시 "Claude Code" 포함
 - 마크다운 기호(#, **, *) 사용 금지
-
-기사 목록:
-{articles_text}
 
 JSON:"""
 
