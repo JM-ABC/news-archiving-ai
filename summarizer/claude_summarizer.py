@@ -2,6 +2,59 @@ import anthropic
 import json
 from typing import List, Dict
 
+TIP_CATEGORIES = [
+    {
+        "name": "파일·폴더 자동화",
+        "difficulty": "claude-code",
+        "example": "바탕화면 파일을 확장자별로 분류하는 Claude Code 스크립트",
+    },
+    {
+        "name": "아침 브리핑·알림 봇",
+        "difficulty": "claude-code",
+        "example": "매일 아침 일정+날씨를 슬랙으로 보내는 자동화 봇",
+    },
+    {
+        "name": "엑셀·CSV 자동 통합",
+        "difficulty": "claude-code",
+        "example": "팀원들한테 받은 엑셀 10개를 하나로 합치는 스크립트",
+    },
+    {
+        "name": "반복 업무 스크립트화",
+        "difficulty": "claude-code",
+        "example": "매달 반복하는 파일 변환·정리 작업을 Claude Code로 한 번만 만들어두기",
+    },
+    {
+        "name": "계약서·문서 검토",
+        "difficulty": "prompt-only",
+        "example": "계약서 PDF에서 불리한 조항만 골라 요약",
+    },
+    {
+        "name": "회의록·액션 아이템",
+        "difficulty": "prompt-only",
+        "example": "회의록을 담당자별 할 일 목록으로 정리",
+    },
+    {
+        "name": "이메일·슬랙 템플릿",
+        "difficulty": "prompt-only",
+        "example": "매주 반복되는 보고 이메일을 채워넣기만 하면 되는 템플릿으로 변환",
+    },
+    {
+        "name": "콘텐츠·SNS 변환",
+        "difficulty": "prompt-only",
+        "example": "블로그 초안을 링크드인·스레드·인스타 포맷 3종으로 변환",
+    },
+    {
+        "name": "데이터 분석·인사이트",
+        "difficulty": "prompt-only",
+        "example": "판매 CSV를 붙여넣어 상위 제품·이상치 자동 분석",
+    },
+    {
+        "name": "리서치·비교 분석",
+        "difficulty": "prompt-only",
+        "example": "경쟁사 3곳을 기준 항목별로 비교표 자동 생성",
+    },
+]
+
 
 class ClaudeSummarizer:
     def __init__(self, api_key: str, model: str):
@@ -129,7 +182,13 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         if not articles_text:
             return {}
 
+        import random
+        selected_category = random.choice(TIP_CATEGORIES)
+
         prompt = f"""다음 AI 뉴스 기사들을 참고해서, 30-40대 직장인이 Claude·ChatGPT·Claude Code·Zapier·n8n 등 AI 도구로 지금 바로 자동화할 수 있는 창의적인 업무 워크플로우를 하나 제안해줘.
+
+카테고리: {selected_category["name"]}
+예시: {selected_category["example"]}
 
 오늘 기사에서 영감을 얻되, 기사 내용에 얽매이지 말고 자유롭게 아이디어를 내도 돼.
 
