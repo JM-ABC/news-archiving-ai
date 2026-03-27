@@ -1,5 +1,6 @@
 import anthropic
 import json
+import random
 from typing import List, Dict
 
 TIP_CATEGORIES = [
@@ -182,7 +183,6 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         if not articles_text:
             return {}
 
-        import random
         selected_category = random.choice(TIP_CATEGORIES)
 
         prompt = f"""오늘의 AI 팁 카테고리: {selected_category["name"]}
