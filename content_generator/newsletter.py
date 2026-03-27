@@ -15,7 +15,7 @@ class NewsletterGenerator:
             trend_items = [
                 t.lstrip("• ").strip()
                 for t in trends_raw.split("\n")
-                if t.strip()
+                if t.strip() and "핵심 트렌드" not in t and "트렌드 3가지" not in t
             ]
             trends_lines = "<br>".join(
                 f'<span style="font-weight:400;color:rgba(229,231,235,0.7);font-size:9px;letter-spacing:0;">• {escape(t)}</span>'
@@ -48,11 +48,11 @@ class NewsletterGenerator:
   <span style="font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">HEADLINE</span>
 </div>
 <div style="margin-bottom:22px;padding:16px;background:#f8fafc;border-radius:4px;border-left:4px solid #4b5563;">
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
     <span style="background:#111827;color:#d1d5db;font-size:8px;font-weight:700;padding:2px 8px;border-radius:2px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
     <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
   </div>
-  <div style="font-size:14px;font-weight:700;color:#111827;line-height:1.4;margin-bottom:8px;font-family:Georgia,'Times New Roman',serif;">{escape(a['title'])}</div>
+  <div style="font-size:14px;font-weight:700;color:#111827;line-height:1.4;margin-bottom:12px;font-family:Georgia,'Times New Roman',serif;">{escape(a['title'])}</div>
   <ul style="margin:0 0 8px;padding-left:16px;color:#374151;font-size:11px;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{bullets_html}</ul>
   <div style="font-size:10px;color:#6b7280;font-style:italic;margin-bottom:10px;font-family:'Segoe UI',Arial,sans-serif;">👉 {escape(a.get('implication', ''))}</div>
   <a href="{escape(a['url'])}" style="font-size:10px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a>
@@ -151,8 +151,8 @@ class NewsletterGenerator:
   <!-- 기사 섹션 -->
   <div style="padding:22px 28px;">
     {headline_html}
-    {tip_html}
     {more_html}
+    {tip_html}
   </div>
 
   <!-- 푸터 -->
