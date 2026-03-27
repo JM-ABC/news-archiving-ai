@@ -18,7 +18,7 @@ class NewsletterGenerator:
                 if t.strip() and "핵심 트렌드" not in t and "트렌드 3가지" not in t
             ]
             trends_lines = "<br>".join(
-                f'<span style="font-weight:400;color:rgba(229,231,235,0.7);font-size:9px;letter-spacing:0;">• {escape(t)}</span>'
+                f'<span style="font-weight:400;color:rgba(229,231,235,0.85);font-size:11px;letter-spacing:0;">• {escape(t)}</span>'
                 for t in trend_items
             )
             trends_banner = f"""
