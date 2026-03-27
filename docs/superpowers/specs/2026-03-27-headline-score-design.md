@@ -20,8 +20,8 @@ Claude가 각 기사를 요약할 때 중요도 점수(`score`, 1-10)를 함께 
 |---|---|
 | `summarizer/claude_summarizer.py` | `summarize()` 프롬프트에 `score` 필드 추가 |
 | `content_generator/newsletter.py` | `max(valid, key=score)` 로 헤드라인 선정, MORE STORIES 재구성 |
-| `tests/test_claude_summarizer.py` | `score` 필드 포함 검증 추가 |
-| `tests/test_newsletter.py` | 최고 점수 기사가 헤드라인 되는지 검증 추가 |
+| `tests/test_claude_summarizer.py` | `test_summarize_returns_list`의 fake JSON에 `score` 추가, 반환값에 `score` 포함 검증 |
+| `tests/test_newsletter.py` | 최고 점수 기사가 헤드라인 되는지, 헤드라인이 MORE STORIES에 미포함인지 검증 |
 
 ### `summarize()` 프롬프트 변경
 
@@ -70,6 +70,58 @@ more_articles = [a for a in valid if a is not headline_article][:5]
 | 동점 기사 | Python `max()` 기본 동작 — 먼저 등장한 기사 선정 |
 | `valid` 비어있음 | 헤드라인 없음 (기존과 동일) |
 | JSON 파싱 실패로 score 누락 | 0으로 폴백, 발행 중단 없음 |
+
+---
+
+## 테스트 명세
+
+### `tests/test_claude_summarizer.py`
+
+`test_summarize_returns_list`의 `fake_response`에 `"score": 8` 추가 후 아래 검증:
+
+```python
+assert isinstance(result[0]["score"], int)
+assert result[0]["score"] == 8
+```
+
+### `tests/test_newsletter.py`
+
+SAMPLE에 `score` 필드 추가 (기사별로 다른 값) 후 아래 테스트 추가:
+
+```python
+def test_headline_is_highest_score():
+    """가장 높은 score 기사가 헤드라인으로 선정되어야 함."""
+    articles = [
+        {"title": "낮은점수기사", "category": "규제", "bullets": ["b1"],
+         "implication": "imp", "url": "https://example.com/low",
+         "label": "A", "region": "KR", "score": 3},
+        {"title": "높은점수기사", "category": "모델 출시", "bullets": ["b2"],
+         "implication": "imp", "url": "https://example.com/high",
+         "label": "B", "region": "GL", "score": 9},
+    ]
+    data = {**SAMPLE, "articles": articles}
+    html = NewsletterGenerator().generate(data)
+    # 높은점수기사가 HEADLINE에, 낮은점수기사가 MORE STORIES에 있어야 함
+    headline_pos = html.index("높은점수기사")
+    more_pos = html.index("낮은점수기사")
+    assert headline_pos < more_pos  # 헤드라인이 먼저 등장
+
+def test_headline_not_in_more_stories():
+    """헤드라인 기사가 MORE STORIES에 중복 노출되지 않아야 함."""
+    articles = [
+        {"title": "최고기사", "category": "모델 출시", "bullets": ["b"],
+         "implication": "imp", "url": "https://example.com/best",
+         "label": "X", "region": "GL", "score": 10},
+        {"title": "보통기사", "category": "규제", "bullets": ["b"],
+         "implication": "imp", "url": "https://example.com/ok",
+         "label": "Y", "region": "KR", "score": 5},
+    ]
+    data = {**SAMPLE, "articles": articles}
+    html = NewsletterGenerator().generate(data)
+    assert html.count("최고기사") == 1  # 헤드라인에만 1번 등장
+```
+
+기존 `test_more_stories_max_5_articles`는 `score` 없는 기사를 사용하므로 변경 없이 통과 (모두 0점 → `max()` 첫 번째 반환, 기존 동작 유지).
 
 ---
 
