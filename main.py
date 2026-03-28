@@ -145,20 +145,12 @@ def main():
                 print(f"\n선택: {focus_topic}\n")
         data["focus_topic"] = focus_topic
 
-    # 7/8 SNS 콘텐츠 생성
-    print("7/8 SNS 콘텐츠 생성 중...")
-    linkedin_post = LinkedInGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
-    threads_post = ThreadsGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
-    instagram_post = InstagramGenerator(client=claude_client, model=CLAUDE_MODEL).generate(data)
-    print("    → 링크드인·스레드·인스타그램 완료")
-
-    # SNS 파일 저장 (preview 포함 항상)
-    SNSExporter(OUTPUT_DIR).export(today, linkedin_post, threads_post, instagram_post)
+    # 7/8 SNS 콘텐츠 생성 (비활성화)
+    print("7/8 SNS 콘텐츠 생성 건너뜀 (비활성화)")
 
     if preview:
         print("\n[PREVIEW 모드] 이메일·Notion 건너뜀.")
         print(f"  뉴스레터: {trend_file}")
-        print(f"  SNS 저장: output/{today}/")
         return
 
     # 8/8 발행
