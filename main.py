@@ -156,7 +156,7 @@ def main():
     # 8/8 발행
     NotionPublisher(NOTION_API_KEY, NOTION_DATABASE_ID).upload(today, trends, summarized)
     EmailPublisher(RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC).send(
-        subject=f"AI 뉴스 | {today}", html=html
+        subject=f"Daily AI | {today}", html=html
     )
     print("\n파이프라인 완료!")
 
