@@ -3,7 +3,7 @@
 
 import sys
 import anthropic
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -12,7 +12,7 @@ from config.settings import (
     NOTION_API_KEY, NOTION_DATABASE_ID,
     RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC,
     GSTACK_BINARY, TRENDS_DIR, OUTPUT_DIR,
-    KR_MAX, GL_MAX, MIN_NEW_ARTICLES, DEDUP_DAYS,
+    KR_MAX, GL_MAX, MIN_NEW_ARTICLES,
 )
 from config.feeds import RSS_FEEDS, CRAWL_TARGETS
 from collector.rss_collector import RSSCollector
@@ -26,26 +26,25 @@ from publisher.email_publisher import EmailPublisher
 from publisher.notion_publisher import NotionPublisher
 from publisher.sns_exporter import SNSExporter
 
-def load_seen_urls(trends_dir: Path, days: int = DEDUP_DAYS) -> set:
+def load_seen_urls(trends_dir: Path) -> set:
+    """직전 발송 trend 파일 1개의 URL만 중복 제거 대상으로 사용.
+    발송 주기(월·수·금)가 바뀌어도 항상 바로 전 발송분과만 비교한다."""
     seen = set()
-    cutoff = datetime.now(ZoneInfo("Asia/Seoul")) - timedelta(days=days)
-    for f in sorted(trends_dir.glob("trend_*.txt")):
-        try:
-            date_str = f.stem.replace("trend_", "")
-            file_date = datetime.strptime(date_str, "%Y-%m-%d").replace(
-                tzinfo=ZoneInfo("Asia/Seoul")
-            )
-            if file_date >= cutoff:
-                for line in f.read_text(encoding="utf-8").splitlines():
-                    stripped = line.strip()
-                    if stripped.startswith("http"):
-                        seen.add(stripped)
-                    elif stripped.startswith("원문:"):
-                        url_part = stripped[len("원문:"):].strip()
-                        if url_part.startswith("http"):
-                            seen.add(url_part)
-        except Exception as e:
-            print(f"[WARN] trend 파일 파싱 실패: {f.name} - {e}")
+    files = sorted(trends_dir.glob("trend_*.txt"))
+    if not files:
+        return seen
+    last_file = files[-1]
+    try:
+        for line in last_file.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped.startswith("http"):
+                seen.add(stripped)
+            elif stripped.startswith("원문:"):
+                url_part = stripped[len("원문:"):].strip()
+                if url_part.startswith("http"):
+                    seen.add(url_part)
+    except Exception as e:
+        print(f"[WARN] trend 파일 파싱 실패: {last_file.name} - {e}")
     return seen
 
 
@@ -110,7 +109,22 @@ def main():
     trends = summarizer.generate_trends(articles)
     print("    → 완료")
 
-    tip = summarizer.generate_tip(summarized)
+    # 직전 발송 카테고리 읽기 (연속 반복 방지)
+    last_tip_file = TRENDS_DIR / "last_tip_category.txt"
+    exclude_names = []
+    if last_tip_file.exists():
+        try:
+            exclude_names = [l.strip() for l in last_tip_file.read_text(encoding="utf-8").splitlines() if l.strip()]
+        except Exception:
+            pass
+
+    tip = summarizer.generate_tip(summarized, exclude_names=exclude_names)
+
+    # 사용한 카테고리 저장 (최근 2개 유지)
+    if tip.get("category_name"):
+        recent = exclude_names[-1:] + [tip["category_name"]]  # 직전 1개 + 이번
+        last_tip_file.write_text("\n".join(recent), encoding="utf-8")
+
     data = {
         "date": today,
         "trends": trends,
@@ -149,8 +163,13 @@ def main():
     print("7/8 SNS 콘텐츠 생성 건너뜀 (비활성화)")
 
     if preview:
+        html_file = TRENDS_DIR / f"newsletter_{today}.html"
+        html_file.write_text(html, encoding="utf-8")
         print("\n[PREVIEW 모드] 이메일·Notion 건너뜀.")
         print(f"  뉴스레터: {trend_file}")
+        print(f"  HTML: {html_file}")
+        import webbrowser
+        webbrowser.open(html_file.as_uri())
         return
 
     # 8/8 발행

@@ -70,30 +70,50 @@ class NewsletterGenerator:
                     f'<span style="background:#e5e7eb;color:#374151;font-size:9px;font-weight:700;padding:3px 10px;border-radius:12px;font-family:\'Segoe UI\',Arial,sans-serif;">{escape(t)}</span> '
                     for t in tip["tools"]
                 )
-                tools_html = f"""
-  <div style="margin-bottom:10px;">
-    <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">🛠 추천 툴</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">{tags}</div>
-  </div>"""
+                tools_html = f'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">{tags}</div>'
+
+            steps_html = ""
+            if tip.get("steps"):
+                step_nums = ["①", "②", "③", "④", "⑤"]
+                rows = ""
+                for i, step in enumerate(tip["steps"][:5]):
+                    num = step_nums[i]
+                    arrow = ""
+                    if i < len(tip["steps"]) - 1:
+                        arrow = '<div style="text-align:center;color:#9ca3af;font-size:12px;line-height:1;margin:2px 0 2px 22px;">↓</div>'
+                    rows += f"""
+<div style="display:flex;align-items:flex-start;gap:10px;">
+  <span style="flex-shrink:0;width:22px;height:22px;background:#111827;color:#fff;font-size:11px;font-weight:700;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:'Segoe UI',Arial,sans-serif;">{num}</span>
+  <span style="font-size:11px;color:#374151;line-height:1.6;padding-top:3px;font-family:'Segoe UI',Arial,sans-serif;">{escape(step)}</span>
+</div>
+{arrow}"""
+                steps_html = f"""
+<div style="margin-bottom:14px;">
+  <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">🪜 이렇게 따라하세요</div>
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;padding:12px 14px;">
+    {rows}
+  </div>
+</div>"""
 
             prompt_html = ""
             if tip.get("prompt"):
                 prompt_html = f"""
-  <div>
-    <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">📋 복붙 프롬프트</div>
-    <div style="background:#111827;border-radius:4px;padding:12px 14px;font-family:'Courier New',Courier,monospace;font-size:10px;color:#e5e7eb;line-height:1.7;word-break:keep-all;">{escape(tip['prompt'])}</div>
-  </div>"""
+<div>
+  <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">📋 복붙 프롬프트 — 그대로 붙여넣고 [ ] 부분만 수정하세요</div>
+  <div style="background:#111827;border-radius:4px;padding:14px 16px;font-family:'Courier New',Courier,monospace;font-size:11px;color:#e5e7eb;line-height:1.8;word-break:keep-all;white-space:pre-wrap;">{escape(tip['prompt'])}</div>
+</div>"""
 
             tip_html = f"""
 <div style="border-bottom:2px solid #111827;padding-bottom:4px;margin-bottom:14px;">
   <span style="font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">💡 오늘 바로 써먹는 AI 팁</span>
 </div>
 <div style="margin-bottom:22px;padding:16px;background:#f9fafb;border-radius:4px;border-left:4px solid #6b7280;">
-  <div style="margin-bottom:10px;">
+  <div style="margin-bottom:12px;">
     <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:4px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK</div>
     <div style="font-size:11px;color:#374151;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{task_text}</div>
   </div>
   {tools_html}
+  {steps_html}
   {prompt_html}
 </div>"""
         else:
