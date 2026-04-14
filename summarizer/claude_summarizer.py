@@ -264,7 +264,7 @@ JSON:"""
 
         msg = self._client.messages.create(
             model=self.model,
-            max_tokens=600,
+            max_tokens=1200,
             messages=[{"role": "user", "content": prompt}],
         )
         raw = msg.content[0].text.strip()
@@ -276,6 +276,7 @@ JSON:"""
             try:
                 result = json.loads(raw)
             except json.JSONDecodeError:
+                print(f"[WARN] generate_tip JSON 파싱 실패. 원문:\n{raw[:300]}")
                 return {}
 
         import re
