@@ -77,9 +77,13 @@ class NewsletterGenerator:
         <tr>
           <td style="font-size:14px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:12px;font-family:Georgia,'Times New Roman',serif;">{escape(a['title'])}</td>
         </tr>
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:8px;">
-          {bullets_html}
-        </table>
+        <tr>
+          <td style="padding-bottom:8px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              {bullets_html}
+            </table>
+          </td>
+        </tr>
         <tr>
           <td style="font-size:10px;color:#6b7280;font-style:italic;padding-bottom:10px;font-family:'Segoe UI',Arial,sans-serif;">👉 {escape(a.get('implication', ''))}</td>
         </tr>
@@ -100,10 +104,10 @@ class NewsletterGenerator:
             tools_html = ""
             if tip.get("tools"):
                 tags = "".join(
-                    f'<span style="background:#e5e7eb;color:#374151;font-size:9px;font-weight:700;padding:3px 10px;font-family:\'Segoe UI\',Arial,sans-serif;">{escape(t)}</span> '
+                    f'<span style="background:#e5e7eb;color:#374151;font-size:9px;font-weight:700;padding:3px 10px;font-family:\'Segoe UI\',Arial,sans-serif;">{escape(t)}</span>&nbsp;'
                     for t in tip["tools"]
                 )
-                tools_html = f'<table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;"><tr><td>{tags}</td></tr></table>'
+                tools_html = f'<tr><td style="padding-bottom:14px;">{tags}</td></tr>'
 
             steps_html = ""
             if tip.get("steps"):
@@ -123,34 +127,46 @@ class NewsletterGenerator:
 </table>
 {arrow}"""
                 steps_html = f"""
-<div style="margin-bottom:14px;">
-  <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">🪜 이렇게 따라하세요</div>
-  <div style="background:#ffffff;border:1px solid #e5e7eb;padding:12px 14px;">
-    {rows}
-  </div>
-</div>"""
+<tr>
+  <td style="padding-bottom:14px;">
+    <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">🪜 이렇게 따라하세요</div>
+    <div style="background:#ffffff;border:1px solid #e5e7eb;padding:12px 14px;">
+      {rows}
+    </div>
+  </td>
+</tr>"""
 
             prompt_html = ""
             if tip.get("prompt"):
                 prompt_html = f"""
-<div>
-  <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">📋 복붙 프롬프트 — 그대로 붙여넣고 [ ] 부분만 수정하세요</div>
-  <div style="background:#111827;padding:14px 16px;font-family:'Courier New',Courier,monospace;font-size:11px;color:#e5e7eb;line-height:1.8;word-break:keep-all;white-space:pre-wrap;">{escape(tip['prompt'])}</div>
-</div>"""
+<tr>
+  <td>
+    <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">📋 복붙 프롬프트 — 그대로 붙여넣고 [ ] 부분만 수정하세요</div>
+    <div style="background:#111827;padding:14px 16px;font-family:'Courier New',Courier,monospace;font-size:11px;color:#e5e7eb;line-height:1.8;word-break:keep-all;white-space:pre-wrap;">{escape(tip['prompt'])}</div>
+  </td>
+</tr>"""
 
             tip_html = f"""
-<div style="border-bottom:2px solid #111827;padding-bottom:4px;margin-bottom:14px;">
-  <span style="font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">💡 오늘 바로 써먹는 AI 팁</span>
-</div>
-<div style="margin-bottom:22px;padding:16px;background:#f5f7fa;border-left:4px solid #6b7280;">
-  <div style="margin-bottom:12px;">
-    <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:4px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK</div>
-    <div style="font-size:11px;color:#374151;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{task_text}</div>
-  </div>
-  {tools_html}
-  {steps_html}
-  {prompt_html}
-</div>"""
+{self._spacer(8)}
+{self._section_label("💡 오늘 바로 써먹는 AI 팁")}
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;">
+  <tr>
+    <td width="4" bgcolor="#6b7280"></td>
+    <td bgcolor="#f5f7fa" style="padding:16px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding-bottom:12px;">
+            <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:4px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK</div>
+            <div style="font-size:11px;color:#374151;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{task_text}</div>
+          </td>
+        </tr>
+        {tools_html}
+        {steps_html}
+        {prompt_html}
+      </table>
+    </td>
+  </tr>
+</table>"""
         else:
             tip_html = ""
 
@@ -162,21 +178,34 @@ class NewsletterGenerator:
                     f"• {escape(b)}" for b in a.get("bullets", [])[:2]
                 )
                 cards += f"""
-<div style="margin-bottom:12px;padding:14px;background:#f5f7fa;border-left:3px solid #d1d5db;">
-  <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:6px;">
-    <tr>
-      <td style="padding-right:8px;"><span style="background:#f3f4f6;color:#374151;font-size:8px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span></td>
-      <td><span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span></td>
-    </tr>
-  </table>
-  <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:6px;line-height:1.4;font-family:Georgia,'Times New Roman',serif;">{i + 1}. {escape(a['title'])}</div>
-  <div style="color:#6b7280;font-size:10px;line-height:1.7;font-family:'Segoe UI',Arial,sans-serif;">{bullets_text}</div>
-  <div style="margin-top:10px;"><a href="{escape(a['url'])}" style="font-size:10px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a></div>
-</div>"""
+{self._spacer(8)}
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td width="3" bgcolor="#d1d5db"></td>
+    <td bgcolor="#f5f7fa" style="padding:14px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding-bottom:6px;">
+            <span style="background:#f3f4f6;color:#374151;font-size:8px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
+            &nbsp;
+            <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:12px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:6px;font-family:Georgia,'Times New Roman',serif;">{i + 1}. {escape(a['title'])}</td>
+        </tr>
+        <tr>
+          <td style="color:#6b7280;font-size:10px;line-height:1.7;font-family:'Segoe UI',Arial,sans-serif;">{bullets_text}</td>
+        </tr>
+        <tr>
+          <td style="padding-top:10px;"><a href="{escape(a['url'])}" style="font-size:10px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>"""
             more_html = f"""
-<div style="border-bottom:2px solid #111827;padding-bottom:4px;margin-bottom:14px;">
-  <span style="font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">MORE STORIES</span>
-</div>
+{self._section_label("MORE STORIES")}
 {cards}"""
         else:
             more_html = ""
@@ -184,45 +213,61 @@ class NewsletterGenerator:
         return f"""<!DOCTYPE html>
 <html lang="ko">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 뉴스 | {date}</title></head>
-<body style="font-family:'Segoe UI',Arial,sans-serif;background:#f5f7fa;margin:0;padding:12px;">
-<div style="max-width:680px;margin:0 auto;background:#ffffff;">
+<body bgcolor="#f5f7fa" style="margin:0;padding:12px;font-family:'Segoe UI',Arial,sans-serif;">
 
-  <!-- 헤더 -->
-  <div style="background:#111827;padding:24px 28px 18px;">
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:4px;">
-      <tr>
-        <td valign="bottom">
-          <span style="font-size:9px;letter-spacing:3px;color:#9ca3af;font-weight:700;display:block;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">DAILY DIGEST</span>
-          <span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#fff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
-        </td>
-        <td valign="bottom" align="right" style="padding-bottom:4px;">
-          <div style="color:#6b7280;font-size:9px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">VOL. 01</div>
-          <div style="color:#9ca3af;font-size:9px;margin-top:2px;font-family:'Segoe UI',Arial,sans-serif;">{date}</div>
-        </td>
-      </tr>
-    </table>
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;"><tr><td height="1" bgcolor="#374151"></td></tr></table>
-  </div>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f7fa">
+  <tr>
+    <td align="center" style="padding:12px;">
 
-  <!-- 트렌드 배너 -->
-  {trends_banner}
+      <table width="680" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="max-width:680px;">
 
-  <!-- 기사 섹션 -->
-  <div style="padding:22px 28px;">
-    {headline_html}
-    {more_html}
-    {tip_html}
-  </div>
+        <!-- 헤더 -->
+        <tr>
+          <td bgcolor="#111827" style="padding:24px 28px 18px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td>
+                  <div style="font-size:9px;letter-spacing:3px;color:#9ca3af;font-weight:700;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">DAILY DIGEST</div>
+                  <span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#ffffff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
+                </td>
+                <td align="right" style="vertical-align:bottom;padding-bottom:4px;">
+                  <div style="color:#6b7280;font-size:9px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">VOL. 01</div>
+                  <div style="color:#9ca3af;font-size:9px;margin-top:2px;font-family:'Segoe UI',Arial,sans-serif;">{date}</div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2" height="1" bgcolor="#1f2937" style="padding-top:14px;"></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-  <!-- 푸터 -->
-  <div style="background:#111827;padding:16px 28px;text-align:center;">
-    <div style="margin-bottom:4px;">
-      <span style="font-size:16px;font-weight:900;color:#fff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:16px;font-weight:900;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
-    </div>
-    <div style="color:#4b5563;font-size:8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">매일 오전 8시 · AI 뉴스 다이제스트</div>
-  </div>
+        <!-- 트렌드 배너 -->
+        <tr><td>{trends_banner}</td></tr>
 
-</div>
+        <!-- 콘텐츠 영역 -->
+        <tr>
+          <td bgcolor="#ffffff" style="padding:22px 28px;">
+            {headline_html}
+            {more_html}
+            {tip_html}
+          </td>
+        </tr>
+
+        <!-- 푸터 -->
+        <tr>
+          <td bgcolor="#111827" style="padding:16px 28px;text-align:center;">
+            <span style="font-size:16px;font-weight:900;color:#ffffff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:16px;font-weight:900;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
+            <div style="color:#4b5563;font-size:8px;letter-spacing:1px;margin-top:4px;font-family:'Segoe UI',Arial,sans-serif;">매일 오전 8시 · AI 뉴스 다이제스트</div>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+
 </body></html>"""
 
     def generate_txt(self, data: Dict) -> str:
