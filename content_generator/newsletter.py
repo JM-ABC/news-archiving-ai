@@ -113,10 +113,11 @@ class NewsletterGenerator:
             if tip.get("steps"):
                 step_nums = ["①", "②", "③", "④", "⑤"]
                 rows = ""
-                for i, step in enumerate(tip["steps"][:5]):
+                steps_to_render = tip["steps"][:5]
+                for i, step in enumerate(steps_to_render):
                     num = step_nums[i]
                     arrow = ""
-                    if i < len(tip["steps"]) - 1:
+                    if i < len(steps_to_render) - 1:
                         arrow = '<div style="text-align:center;color:#9ca3af;font-size:12px;line-height:1;margin:2px 0 2px 22px;">↓</div>'
                     rows += f"""
 <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:2px;">
