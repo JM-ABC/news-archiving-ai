@@ -57,23 +57,39 @@ class NewsletterGenerator:
         if headline_article:
             a = headline_article
             bullets_html = "".join(
-                f"<li style='margin-bottom:4px;'>{escape(b)}</li>"
+                f"<tr><td style='padding:2px 0;color:#374151;font-size:11px;font-family:\"Segoe UI\",Arial,sans-serif;'>• {escape(b)}</td></tr>"
                 for b in a.get("bullets", [])
             )
             headline_html = f"""
-<div style="border-bottom:2px solid #111827;padding-bottom:4px;margin-bottom:14px;">
-  <span style="font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">HEADLINE</span>
-</div>
-<div style="margin-bottom:22px;padding:16px;background:#f5f7fa;border-left:4px solid #4b5563;">
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-    <span style="background:#111827;color:#d1d5db;font-size:8px;font-weight:700;padding:2px 8px;border-radius:2px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
-    <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
-  </div>
-  <div style="font-size:14px;font-weight:700;color:#111827;line-height:1.4;margin-bottom:12px;font-family:Georgia,'Times New Roman',serif;">{escape(a['title'])}</div>
-  <ul style="margin:0 0 8px;padding-left:16px;color:#374151;font-size:11px;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{bullets_html}</ul>
-  <div style="font-size:10px;color:#6b7280;font-style:italic;margin-bottom:10px;font-family:'Segoe UI',Arial,sans-serif;">👉 {escape(a.get('implication', ''))}</div>
-  <a href="{escape(a['url'])}" style="font-size:10px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a>
-</div>"""
+{self._section_label("HEADLINE")}
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;">
+  <tr>
+    <td width="4" bgcolor="#4b5563"></td>
+    <td bgcolor="#f5f7fa" style="padding:16px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding-bottom:12px;">
+            <span style="background:#111827;color:#d1d5db;font-size:8px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
+            &nbsp;
+            <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:14px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:12px;font-family:Georgia,'Times New Roman',serif;">{escape(a['title'])}</td>
+        </tr>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:8px;">
+          {bullets_html}
+        </table>
+        <tr>
+          <td style="font-size:10px;color:#6b7280;font-style:italic;padding-bottom:10px;font-family:'Segoe UI',Arial,sans-serif;">👉 {escape(a.get('implication', ''))}</td>
+        </tr>
+        <tr>
+          <td><a href="{escape(a['url'])}" style="font-size:10px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>"""
         else:
             headline_html = ""
 
@@ -84,10 +100,10 @@ class NewsletterGenerator:
             tools_html = ""
             if tip.get("tools"):
                 tags = "".join(
-                    f'<span style="background:#e5e7eb;color:#374151;font-size:9px;font-weight:700;padding:3px 10px;border-radius:12px;font-family:\'Segoe UI\',Arial,sans-serif;">{escape(t)}</span> '
+                    f'<span style="background:#e5e7eb;color:#374151;font-size:9px;font-weight:700;padding:3px 10px;font-family:\'Segoe UI\',Arial,sans-serif;">{escape(t)}</span> '
                     for t in tip["tools"]
                 )
-                tools_html = f'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">{tags}</div>'
+                tools_html = f'<table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;"><tr><td>{tags}</td></tr></table>'
 
             steps_html = ""
             if tip.get("steps"):
@@ -99,10 +115,12 @@ class NewsletterGenerator:
                     if i < len(tip["steps"]) - 1:
                         arrow = '<div style="text-align:center;color:#9ca3af;font-size:12px;line-height:1;margin:2px 0 2px 22px;">↓</div>'
                     rows += f"""
-<div style="display:flex;align-items:flex-start;gap:10px;">
-  <span style="flex-shrink:0;width:22px;height:22px;background:#111827;color:#fff;font-size:11px;font-weight:700;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:'Segoe UI',Arial,sans-serif;">{num}</span>
-  <span style="font-size:11px;color:#374151;line-height:1.6;padding-top:3px;font-family:'Segoe UI',Arial,sans-serif;">{escape(step)}</span>
-</div>
+<table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:2px;">
+  <tr>
+    <td width="22" valign="top" style="padding-right:10px;"><span style="display:block;width:22px;height:22px;background:#111827;color:#fff;font-size:11px;font-weight:700;text-align:center;font-family:'Segoe UI',Arial,sans-serif;line-height:22px;">{num}</span></td>
+    <td style="font-size:11px;color:#374151;line-height:1.6;padding-top:3px;font-family:'Segoe UI',Arial,sans-serif;">{escape(step)}</td>
+  </tr>
+</table>
 {arrow}"""
                 steps_html = f"""
 <div style="margin-bottom:14px;">
@@ -117,7 +135,7 @@ class NewsletterGenerator:
                 prompt_html = f"""
 <div>
   <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">📋 복붙 프롬프트 — 그대로 붙여넣고 [ ] 부분만 수정하세요</div>
-  <div style="background:#111827;border-radius:4px;padding:14px 16px;font-family:'Courier New',Courier,monospace;font-size:11px;color:#e5e7eb;line-height:1.8;word-break:keep-all;white-space:pre-wrap;">{escape(tip['prompt'])}</div>
+  <div style="background:#111827;padding:14px 16px;font-family:'Courier New',Courier,monospace;font-size:11px;color:#e5e7eb;line-height:1.8;word-break:keep-all;white-space:pre-wrap;">{escape(tip['prompt'])}</div>
 </div>"""
 
             tip_html = f"""
@@ -145,10 +163,12 @@ class NewsletterGenerator:
                 )
                 cards += f"""
 <div style="margin-bottom:12px;padding:14px;background:#f5f7fa;border-left:3px solid #d1d5db;">
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
-    <span style="background:#f3f4f6;color:#374151;font-size:8px;font-weight:700;padding:2px 8px;border-radius:2px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
-    <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
-  </div>
+  <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:6px;">
+    <tr>
+      <td style="padding-right:8px;"><span style="background:#f3f4f6;color:#374151;font-size:8px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span></td>
+      <td><span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span></td>
+    </tr>
+  </table>
   <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:6px;line-height:1.4;font-family:Georgia,'Times New Roman',serif;">{i + 1}. {escape(a['title'])}</div>
   <div style="color:#6b7280;font-size:10px;line-height:1.7;font-family:'Segoe UI',Arial,sans-serif;">{bullets_text}</div>
   <div style="margin-top:10px;"><a href="{escape(a['url'])}" style="font-size:10px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a></div>
@@ -169,17 +189,19 @@ class NewsletterGenerator:
 
   <!-- 헤더 -->
   <div style="background:#111827;padding:24px 28px 18px;">
-    <div style="display:flex;align-items:flex-end;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
-      <div>
-        <span style="font-size:9px;letter-spacing:3px;color:#9ca3af;font-weight:700;display:block;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">DAILY DIGEST</span>
-        <span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#fff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
-      </div>
-      <div style="margin-left:auto;text-align:right;padding-bottom:4px;">
-        <div style="color:#6b7280;font-size:9px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">VOL. 01</div>
-        <div style="color:#9ca3af;font-size:9px;margin-top:2px;font-family:'Segoe UI',Arial,sans-serif;">{date}</div>
-      </div>
-    </div>
-    <div style="height:1px;background:rgba(255,255,255,0.12);margin-top:14px;"></div>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:4px;">
+      <tr>
+        <td valign="bottom">
+          <span style="font-size:9px;letter-spacing:3px;color:#9ca3af;font-weight:700;display:block;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">DAILY DIGEST</span>
+          <span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#fff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
+        </td>
+        <td valign="bottom" align="right" style="padding-bottom:4px;">
+          <div style="color:#6b7280;font-size:9px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">VOL. 01</div>
+          <div style="color:#9ca3af;font-size:9px;margin-top:2px;font-family:'Segoe UI',Arial,sans-serif;">{date}</div>
+        </td>
+      </tr>
+    </table>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;"><tr><td height="1" bgcolor="#374151"></td></tr></table>
   </div>
 
   <!-- 트렌드 배너 -->
