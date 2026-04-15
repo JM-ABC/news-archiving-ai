@@ -3,6 +3,22 @@ from typing import Dict
 
 
 class NewsletterGenerator:
+    def _section_label(self, text: str) -> str:
+        """섹션 구분선 + 레이블 행 (테이블 행 반환)."""
+        return f"""
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;">
+  <tr>
+    <td height="2" bgcolor="#111827"></td>
+  </tr>
+  <tr>
+    <td style="padding-top:6px;font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">{text}</td>
+  </tr>
+</table>"""
+
+    def _spacer(self, height: int = 12) -> str:
+        """카드 간 여백 행."""
+        return f'<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td height="{height}"></td></tr></table>'
+
     def generate(self, data: Dict) -> str:
         """에디토리얼 매거진 스타일 HTML 뉴스레터 생성 (v2: 모노크롬 + Georgia)."""
         date = escape(data["date"])
@@ -47,7 +63,7 @@ class NewsletterGenerator:
 <div style="border-bottom:2px solid #111827;padding-bottom:4px;margin-bottom:14px;">
   <span style="font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">HEADLINE</span>
 </div>
-<div style="margin-bottom:22px;padding:16px;background:#f8fafc;border-radius:4px;border-left:4px solid #4b5563;">
+<div style="margin-bottom:22px;padding:16px;background:#f5f7fa;border-left:4px solid #4b5563;">
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
     <span style="background:#111827;color:#d1d5db;font-size:8px;font-weight:700;padding:2px 8px;border-radius:2px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
     <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
@@ -90,7 +106,7 @@ class NewsletterGenerator:
                 steps_html = f"""
 <div style="margin-bottom:14px;">
   <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">🪜 이렇게 따라하세요</div>
-  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;padding:12px 14px;">
+  <div style="background:#ffffff;border:1px solid #e5e7eb;padding:12px 14px;">
     {rows}
   </div>
 </div>"""
@@ -107,7 +123,7 @@ class NewsletterGenerator:
 <div style="border-bottom:2px solid #111827;padding-bottom:4px;margin-bottom:14px;">
   <span style="font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">💡 오늘 바로 써먹는 AI 팁</span>
 </div>
-<div style="margin-bottom:22px;padding:16px;background:#f9fafb;border-radius:4px;border-left:4px solid #6b7280;">
+<div style="margin-bottom:22px;padding:16px;background:#f5f7fa;border-left:4px solid #6b7280;">
   <div style="margin-bottom:12px;">
     <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:4px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK</div>
     <div style="font-size:11px;color:#374151;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{task_text}</div>
@@ -127,7 +143,7 @@ class NewsletterGenerator:
                     f"• {escape(b)}" for b in a.get("bullets", [])[:2]
                 )
                 cards += f"""
-<div style="margin-bottom:12px;padding:14px;background:#f8fafc;border-left:3px solid #d1d5db;border-radius:4px;">
+<div style="margin-bottom:12px;padding:14px;background:#f5f7fa;border-left:3px solid #d1d5db;">
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
     <span style="background:#f3f4f6;color:#374151;font-size:8px;font-weight:700;padding:2px 8px;border-radius:2px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
     <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
@@ -147,8 +163,8 @@ class NewsletterGenerator:
         return f"""<!DOCTYPE html>
 <html lang="ko">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 뉴스 | {date}</title></head>
-<body style="font-family:'Segoe UI',Arial,sans-serif;background:#f1f5f9;margin:0;padding:12px;">
-<div style="max-width:680px;margin:0 auto;background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<body style="font-family:'Segoe UI',Arial,sans-serif;background:#f5f7fa;margin:0;padding:12px;">
+<div style="max-width:680px;margin:0 auto;background:#ffffff;">
 
   <!-- 헤더 -->
   <div style="background:#111827;padding:24px 28px 18px;">
