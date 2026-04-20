@@ -40,8 +40,8 @@ class NewsletterGenerator:
             trends_banner = f"""
 <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr>
-    <td bgcolor="#374151" style="padding:10px 28px;font-size:9px;font-weight:900;letter-spacing:0;color:#e5e7eb;font-family:'Segoe UI',Arial,sans-serif;line-height:1.8;word-break:keep-all;">
-      🔑 TODAY&#x27;S TRENDS<br>{trends_lines}
+    <td bgcolor="#374151" style="padding:10px 28px;font-size:9px;letter-spacing:0;color:#e5e7eb;font-family:'Segoe UI',Arial,sans-serif;line-height:1.8;word-break:keep-all;">
+      <span style="font-weight:900;">🔑 TODAY&#x27;S TRENDS</span><br><span style="font-weight:400;">{trends_lines}</span>
     </td>
   </tr>
 </table>"""
@@ -111,7 +111,7 @@ class NewsletterGenerator:
 
             steps_html = ""
             if tip.get("steps"):
-                step_nums = ["①", "②", "③", "④", "⑤"]
+                step_nums = ["1", "2", "3", "4", "5"]
                 rows = ""
                 steps_to_render = tip["steps"][:5]
                 for i, step in enumerate(steps_to_render):

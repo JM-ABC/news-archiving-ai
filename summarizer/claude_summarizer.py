@@ -4,40 +4,21 @@ import random
 from typing import List, Dict
 
 TIP_CATEGORIES = [
+    # 마케팅
     {
-        "name": "파일·폴더 자동화",
-        "difficulty": "claude-code",
-        "example": "바탕화면 파일을 확장자별로 분류하는 Claude Code 스크립트",
-    },
-    {
-        "name": "아침 브리핑·알림 봇",
-        "difficulty": "claude-code",
-        "example": "매일 아침 일정+날씨를 슬랙으로 보내는 자동화 봇",
-    },
-    {
-        "name": "엑셀·CSV 자동 통합",
-        "difficulty": "claude-code",
-        "example": "팀원들한테 받은 엑셀 10개를 하나로 합치는 스크립트",
-    },
-    {
-        "name": "반복 업무 스크립트화",
-        "difficulty": "claude-code",
-        "example": "매달 반복하는 파일 변환·정리 작업을 Claude Code로 한 번만 만들어두기",
-    },
-    {
-        "name": "계약서·문서 검토",
+        "name": "마케팅 소재 멀티포맷 변환",
         "difficulty": "prompt-only",
-        "example": "계약서 PDF에서 불리한 조항만 골라 요약",
+        "example": "상품 특징 3줄을 넣으면 배너 카피·SNS 문구·이메일 제목 한번에 생성",
     },
     {
-        "name": "회의록·액션 아이템",
+        "name": "이메일 마케팅 시퀀스 자동화",
         "difficulty": "prompt-only",
-        "example": "회의록을 담당자별 할 일 목록으로 정리",
+        "example": "신규 가입자 온보딩 이메일 5단계 시퀀스(제목·본문·CTA 포함) 자동 작성",
     },
     {
-        "name": "이메일·슬랙 템플릿",
+        "name": "광고 카피 A/B 테스트 초안",
         "difficulty": "prompt-only",
-        "example": "매주 반복되는 보고 이메일을 채워넣기만 하면 되는 템플릿으로 변환",
+        "example": "구글·메타 광고 소재를 각 3가지 버전(헤드라인+설명문)으로 한번에 생성",
     },
     {
         "name": "콘텐츠·SNS 변환",
@@ -45,16 +26,16 @@ TIP_CATEGORIES = [
         "example": "블로그 초안을 링크드인·스레드·인스타 포맷 3종으로 변환",
     },
     {
-        "name": "데이터 분석·인사이트",
+        "name": "시즌 프로모션 기획 초안",
         "difficulty": "prompt-only",
-        "example": "판매 CSV를 붙여넣어 상위 제품·이상치 자동 분석",
+        "example": "행사 일정·할인율·타겟 상품만 알려주면 프로모션 기획서 초안 자동 작성",
     },
     {
-        "name": "리서치·비교 분석",
+        "name": "월간 SNS 콘텐츠 캘린더 자동화",
         "difficulty": "prompt-only",
-        "example": "경쟁사 3곳을 기준 항목별로 비교표 자동 생성",
+        "example": "브랜드 키워드·타겟 고객만 입력하면 30일치 SNS 포스팅 주제·캡션 초안 생성",
     },
-    # 이커머스 특화
+    # 이커머스
     {
         "name": "상품 상세페이지 카피 작성",
         "difficulty": "prompt-only",
@@ -76,19 +57,51 @@ TIP_CATEGORIES = [
         "example": "상품명 목록 CSV를 넣으면 카테고리·검색 태그 자동 분류해서 새 열로 추가",
     },
     {
+        "name": "경쟁사 가격·프로모션 모니터링",
+        "difficulty": "claude-code",
+        "example": "경쟁사 URL 목록을 넣으면 Claude Code가 가격·할인 정보를 크롤링해서 비교표 자동 생성",
+    },
+    # 세일즈
+    {
+        "name": "영업 제안서·견적서 자동 초안",
+        "difficulty": "prompt-only",
+        "example": "고객사 업종·니즈·예산만 입력하면 맞춤형 제안서 초안과 핵심 어필 포인트 자동 작성",
+    },
+    {
+        "name": "영업 이메일 개인화 자동화",
+        "difficulty": "prompt-only",
+        "example": "잠재 고객 정보(직책·업종·pain point)를 넣으면 1:1 개인화 콜드 이메일 3가지 버전 생성",
+    },
+    {
+        "name": "리드 자격 심사 자동화",
+        "difficulty": "prompt-only",
+        "example": "CRM 메모·통화 내용을 붙여넣으면 BANT 기준으로 리드 등급과 다음 액션 자동 분류",
+    },
+    {
+        "name": "고객 이탈 징후 분석",
+        "difficulty": "prompt-only",
+        "example": "고객 구매 이력·CS 문의 내용을 넣으면 이탈 위험 신호와 리텐션 대응 메시지 자동 생성",
+    },
+    # 데이터 분석
+    {
         "name": "판매 데이터 리포트 자동화",
         "difficulty": "claude-code",
         "example": "주간 판매 엑셀을 넣으면 베스트셀러·재고 위험 상품·매출 추이 요약 리포트 생성",
     },
     {
-        "name": "마케팅 소재 멀티포맷 변환",
+        "name": "데이터 분석·인사이트",
         "difficulty": "prompt-only",
-        "example": "상품 특징 3줄을 넣으면 배너 카피·SNS 문구·이메일 제목 한번에 생성",
+        "example": "판매 CSV를 붙여넣어 상위 제품·이상치 자동 분석",
     },
     {
-        "name": "시즌 프로모션 기획 초안",
-        "difficulty": "prompt-only",
-        "example": "행사 일정·할인율·타겟 상품만 알려주면 프로모션 기획서 초안 자동 작성",
+        "name": "광고 성과 리포트 자동화",
+        "difficulty": "claude-code",
+        "example": "구글·메타 광고 성과 CSV를 넣으면 ROAS·CPA·CTR 비교와 예산 조정 권고안 자동 생성",
+    },
+    {
+        "name": "고객 세그먼트 분석 자동화",
+        "difficulty": "claude-code",
+        "example": "주문 데이터 CSV를 넣으면 RFM 기반 고객 등급 분류와 등급별 마케팅 전략 자동 생성",
     },
 ]
 
