@@ -123,7 +123,7 @@ def main():
 
     # 5/8 트렌드 도출
     print("5/8 핵심 트렌드 도출 중...")
-    trends = summarizer.generate_trends(articles)
+    trends = summarizer.generate_trends(summarized)
     print("    → 완료")
 
     # 최근 발송 카테고리 읽기 (연속 반복 방지)
@@ -165,6 +165,7 @@ def main():
     # 6/8 뉴스레터 생성
     print("6/8 뉴스레터 생성 중...")
     gen = NewsletterGenerator()
+    shown_urls = {a["url"] for a in gen.select_shown_articles(summarized)}
     html = gen.generate(data)
     txt = gen.generate_txt(data)
     trend_prefix = "test_trend" if test_to else "trend"
@@ -225,8 +226,10 @@ def main():
         sent = False
 
     # 발행(이메일 발송) 성공 시에만 이력·발행 호수 기록 (실패/비활성화 시 다음 실행에서 재시도)
+    # 본문(HEADLINE+MORE STORIES)에 실제로 보여준 기사만 기록 — 수집만 되고 안 보여준
+    # 기사까지 "봤다"고 기록하면 독자가 본 적 없는 기사가 다음 발행에서도 재등장하지 않는다.
     if sent:
-        record_seen(seen_file, seen | {a["url"] for a in articles}, today)
+        record_seen(seen_file, seen | shown_urls, today)
         issue_file.write_text(str(issue_no), encoding="utf-8")
     else:
         print("[warn] 이메일 미발송 — 발송 이력을 기록하지 않습니다 (다음 실행에서 재시도).")

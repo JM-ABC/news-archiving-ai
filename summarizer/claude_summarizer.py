@@ -159,20 +159,29 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         return [l.replace("\u2014", "-").replace("\u2013", "-").replace("\u2022", "-") for l in result]
 
     def generate_trends(self, articles: List[Dict]) -> str:
-        """전체 기사에서 핵심 트렌드 3가지 도출."""
+        """기사 제목+핵심 내용을 바탕으로 오늘의 핵심 트렌드 3가지 도출.
+
+        articles는 summarize() 이후의 결과(category·bullets 포함)를 받아야 정확하다.
+        "기타"로 분류된 기사는 뉴스레터 본문에도 노출되지 않으므로 트렌드 근거에서도 제외한다.
+        """
         if not articles:
             return ""
 
-        titles = "\n".join(f"- {a['title']}" for a in articles)
+        valid = [a for a in articles if a.get("category") != "기타"]
+        source = valid if valid else articles
+        articles_text = "\n".join(
+            f"- {a['title']}: {' / '.join(a['bullets'][:2])}" if a.get("bullets") else f"- {a['title']}"
+            for a in source
+        )
 
-        prompt = f"""다음 AI 뉴스 기사 제목들을 보고 오늘의 핵심 트렌드 3가지를 한국어로 도출하세요.
+        prompt = f"""다음 AI 뉴스 기사 목록(제목과 핵심 내용)을 보고 오늘의 핵심 트렌드 3가지를 한국어로 도출하세요.
 각 트렌드는 "• " 로 시작하는 단문 1-2문장으로 작성하세요.
 문장은 반드시 ~어요/에요 어체로 끝내세요. (예: "~높아지고 있어요.", "~주목받고 있어요.")
 기업명·수치·모델명 등 구체적인 정보를 문장 안에 자연스럽게 녹여 쓰세요. 단, 문장은 짧고 간결하게 유지하세요.
 #, **, *, _ 같은 마크다운 기호는 절대 사용하지 마세요. 순수 텍스트만 작성하세요.
 
 기사 목록:
-{titles}
+{articles_text}
 
 핵심 트렌드 3가지:"""
 

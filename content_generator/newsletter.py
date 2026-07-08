@@ -1,7 +1,14 @@
+import re
 from html import escape
 from typing import Dict
 
 from config.settings import EMAIL_FROM
+
+
+def _bare_email(addr: str) -> str:
+    """"이름 <메일>" 형식(Resend 발신자 포맷)이면 메일 주소만 추출."""
+    m = re.search(r"<([^<>]+)>", addr)
+    return m.group(1) if m else addr
 
 
 class NewsletterGenerator:
@@ -23,6 +30,20 @@ class NewsletterGenerator:
             f'padding:2px 8px;letter-spacing:1px;font-family:\'Segoe UI\',Arial,sans-serif;">'
             f"{escape(category)}</span>"
         )
+
+    def select_shown_articles(self, articles):
+        """실제로 뉴스레터 본문(HEADLINE + MORE STORIES)에 노출되는 기사만 반환.
+
+        발송 이력(seen_urls.json) 기록도 반드시 이 결과 기준으로 해야 한다 —
+        본문에 안 보여준 기사까지 "이미 봤다"고 기록하면 독자가 보지도 못한
+        기사가 다음 발행에서도 영영 재등장하지 않는다.
+        """
+        valid = [a for a in articles if a.get("category") != "기타"]
+        if not valid:
+            return []
+        headline_article = max(valid, key=lambda a: a.get("score", 0))
+        more_articles = [a for a in valid if a is not headline_article][:5]
+        return [headline_article] + more_articles
 
     def _section_label(self, text: str) -> str:
         """섹션 구분선 + 레이블 행 (테이블 행 반환)."""
@@ -70,9 +91,9 @@ class NewsletterGenerator:
             trends_banner = ""
 
         # 기사 분류
-        valid = [a for a in articles if a.get("category") != "기타"]
-        headline_article = max(valid, key=lambda a: a.get("score", 0)) if valid else None
-        more_articles = [a for a in valid if a is not headline_article][:5]
+        shown = self.select_shown_articles(articles)
+        headline_article = shown[0] if shown else None
+        more_articles = shown[1:]
 
         # HEADLINE 섹션
         if headline_article:
@@ -287,7 +308,7 @@ class NewsletterGenerator:
           <td bgcolor="#111827" style="padding:16px 28px;text-align:center;">
             <span style="font-size:16px;font-weight:700;color:#ffffff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:16px;font-weight:700;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
             <div style="color:#4b5563;font-size:10px;letter-spacing:1px;margin-top:4px;font-family:'Segoe UI',Arial,sans-serif;">월·수·금 오전 8시 · AI 뉴스 다이제스트</div>
-            <div style="margin-top:8px;"><a href="mailto:{escape(EMAIL_FROM or 'jmyoonkr@gmail.com')}?subject=수신거부" style="color:#6b7280;font-size:10px;font-family:'Segoe UI',Arial,sans-serif;text-decoration:underline;">수신거부</a></div>
+            <div style="margin-top:8px;"><a href="mailto:{escape(_bare_email(EMAIL_FROM or 'jmyoonkr@gmail.com'))}?subject=수신거부" style="color:#6b7280;font-size:10px;font-family:'Segoe UI',Arial,sans-serif;text-decoration:underline;">수신거부</a></div>
           </td>
         </tr>
 
