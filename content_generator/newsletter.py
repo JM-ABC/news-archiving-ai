@@ -62,7 +62,7 @@ class NewsletterGenerator:
 <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr>
     <td bgcolor="#374151" style="padding:12px 28px;font-size:12px;letter-spacing:0;color:#e5e7eb;font-family:'Segoe UI',Arial,sans-serif;line-height:1.8;word-break:keep-all;">
-      <span style="font-weight:700;">🔑 TODAY&#x27;S TRENDS</span><br><span style="font-weight:400;">{trends_lines}</span>
+      <span style="font-weight:700;">📈 TODAY&#x27;S TRENDS</span><br><span style="font-weight:400;">{trends_lines}</span>
     </td>
   </tr>
 </table>"""
@@ -220,7 +220,7 @@ class NewsletterGenerator:
           </td>
         </tr>
         <tr>
-          <td style="font-size:15px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:6px;font-family:Georgia,'Times New Roman',serif;">{i + 1}. {escape(a['title'])}</td>
+          <td style="font-size:15px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:6px;font-family:Georgia,'Times New Roman',serif;"><span style="display:inline-block;width:20px;height:20px;background:#111827;color:#ffffff;font-size:11px;font-weight:700;text-align:center;line-height:20px;font-family:'Segoe UI',Arial,sans-serif;margin-right:6px;vertical-align:middle;">{i + 1}</span>{escape(a['title'])}</td>
         </tr>
         <tr>
           <td style="color:#6b7280;font-size:13px;line-height:1.7;font-family:'Segoe UI',Arial,sans-serif;">{bullets_text}</td>
@@ -305,7 +305,7 @@ class NewsletterGenerator:
         trends = data["trends"]
         articles = data["articles"]
 
-        lines = [f"AI 뉴스 트렌드 | {date}", "---", "", "🔑 오늘의 핵심 트렌드", ""]
+        lines = [f"AI 뉴스 트렌드 | {date}", "---", "", "📈 오늘의 핵심 트렌드", ""]
         lines += [t for t in trends.split("\n") if t.strip()]
         lines += ["", "---"]
 
