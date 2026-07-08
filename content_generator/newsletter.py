@@ -5,6 +5,25 @@ from config.settings import EMAIL_FROM
 
 
 class NewsletterGenerator:
+    # 카테고리별 배지 색 (배경, 글자) — summarize() 프롬프트의 카테고리 값과 매핑
+    _CATEGORY_COLORS = {
+        "신제품·서비스": ("#dbeafe", "#1e40af"),
+        "생활·직장 AI": ("#dcfce7", "#166534"),
+        "규제·사회": ("#fef3c7", "#92400e"),
+        "기업·산업": ("#ede9fe", "#5b21b6"),
+        "연구·기술": ("#cffafe", "#155e75"),
+    }
+    _CATEGORY_COLOR_DEFAULT = ("#e5e7eb", "#374151")
+
+    def _category_badge(self, category: str, font_size: int = 11) -> str:
+        """카테고리별 색상 배지 span."""
+        bg, fg = self._CATEGORY_COLORS.get(category, self._CATEGORY_COLOR_DEFAULT)
+        return (
+            f'<span style="background:{bg};color:{fg};font-size:{font_size}px;font-weight:700;'
+            f'padding:2px 8px;letter-spacing:1px;font-family:\'Segoe UI\',Arial,sans-serif;">'
+            f"{escape(category)}</span>"
+        )
+
     def _section_label(self, text: str) -> str:
         """섹션 구분선 + 레이블 행 (테이블 행 반환)."""
         return f"""
@@ -71,7 +90,7 @@ class NewsletterGenerator:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding-bottom:12px;">
-            <span style="background:#111827;color:#d1d5db;font-size:11px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
+            {self._category_badge(a.get('category', ''))}
             &nbsp;
             <span style="color:#9ca3af;font-size:11px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
           </td>
@@ -102,11 +121,12 @@ class NewsletterGenerator:
         # AI 팁 섹션
         if tip.get("task"):
             task_text = escape(tip["task"])
-            difficulty_badge = (
-                "\U0001f4bb Claude Code 앱 필요"
-                if tip.get("difficulty") == "claude-code"
-                else "\U0001f310 웹에서 바로 (설치 없음)"
-            )
+            if tip.get("difficulty") == "claude-code":
+                difficulty_label = "\U0001f4bb Claude Code 앱 필요"
+                difficulty_bg, difficulty_fg = "#1e3a8a", "#dbeafe"
+            else:
+                difficulty_label = "\U0001f310 웹에서 바로 (설치 없음)"
+                difficulty_bg, difficulty_fg = "#166534", "#dcfce7"
 
             tools_html = ""
             if tip.get("tools"):
@@ -164,7 +184,7 @@ class NewsletterGenerator:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding-bottom:12px;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK <span style="background:#111827;color:#ffffff;padding:2px 8px;margin-left:4px;font-size:10px;font-weight:700;letter-spacing:0;">{escape(difficulty_badge)}</span></div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK <span style="background:{difficulty_bg};color:{difficulty_fg};padding:3px 9px;margin-left:4px;font-size:11px;font-weight:700;letter-spacing:0;">{escape(difficulty_label)}</span></div>
             <div style="font-size:13px;color:#374151;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{task_text}</div>
           </td>
         </tr>
@@ -194,7 +214,7 @@ class NewsletterGenerator:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding-bottom:6px;">
-            <span style="background:#f3f4f6;color:#374151;font-size:11px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
+            {self._category_badge(a.get('category', ''))}
             &nbsp;
             <span style="color:#9ca3af;font-size:11px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
           </td>
