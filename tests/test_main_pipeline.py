@@ -51,3 +51,44 @@ def test_prioritize_splits_kr_gl():
 
     assert kr_count == 13  # KR_MAX
     assert gl_count == 7   # GL_MAX
+
+
+def test_flag_value_parses_argument(monkeypatch):
+    import main
+    monkeypatch.setattr(sys, "argv", ["main.py", "--test-to", "me@example.com"])
+    assert main._flag_value("--test-to") == "me@example.com"
+    assert main._flag_value("--missing") == ""
+
+
+def test_test_send_mode_sends_only_to_override(tmp_path, monkeypatch):
+    """--test-to 모드: 지정 주소로만 발송, Notion·발송 이력 기록 없음."""
+    monkeypatch.setenv("CLAUDE_API_KEY", "test-key")
+    article = {"title": "AI 뉴스", "url": "https://x.com/1", "summary": "s",
+               "label": "L", "region": "KR"}
+
+    with patch("collector.rss_collector.RSSCollector.fetch", return_value=[article]), \
+         patch("collector.gstack_crawler.GstackCrawler.crawl", return_value=[]), \
+         patch("summarizer.claude_summarizer.ClaudeSummarizer.summarize",
+               return_value=[{**article, "category": "규제", "bullets": ["b"],
+                              "implication": "i", "score": 5}]), \
+         patch("summarizer.claude_summarizer.ClaudeSummarizer.generate_trends",
+               return_value="• 트렌드"), \
+         patch("summarizer.claude_summarizer.ClaudeSummarizer.generate_tip",
+               return_value={}), \
+         patch("publisher.email_publisher.EmailPublisher.send", return_value=True) as mock_send, \
+         patch("publisher.notion_publisher.NotionPublisher.upload") as mock_upload, \
+         patch.object(sys, "argv", ["main.py", "--test-to", "me@example.com"]):
+
+        import main
+        trends_dir = tmp_path / "trends"
+        monkeypatch.setattr(main, "TRENDS_DIR", trends_dir)
+        monkeypatch.setattr(main, "OUTPUT_DIR", tmp_path / "output")
+
+        main.main()
+
+        mock_send.assert_called_once()
+        assert "[테스트]" in mock_send.call_args.kwargs["subject"]
+        mock_upload.assert_not_called()
+        assert not (trends_dir / "seen_urls.json").exists()  # 이력 기록 없음
+        assert list(trends_dir.glob("test_trend_*.txt"))     # 테스트용 파일명
+        assert not list(trends_dir.glob("trend_*.txt"))

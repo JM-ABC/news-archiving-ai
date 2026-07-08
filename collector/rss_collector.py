@@ -1,4 +1,5 @@
 import feedparser
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict
 
 # AI 관련 키워드 — 제목·요약 중 하나라도 포함되면 수집
@@ -26,6 +27,7 @@ class RSSCollector:
     def fetch(self, days: int = 4) -> List[Dict]:
         articles = []
         seen_urls = set()
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
         for feed in self.feeds:
             parsed = feedparser.parse(feed["url"])
@@ -44,6 +46,13 @@ class RSSCollector:
 
                 if not _is_ai_related(title, summary):
                     continue
+
+                # 날짜 필터: published_parsed 또는 updated_parsed 기준
+                pub = getattr(entry, "published_parsed", None) or getattr(entry, "updated_parsed", None)
+                if pub:
+                    pub_dt = datetime(*pub[:6], tzinfo=timezone.utc)
+                    if pub_dt < cutoff:
+                        continue
 
                 seen_urls.add(url)
                 articles.append({

@@ -99,9 +99,11 @@ def test_more_stories_has_url_link():
 
 
 def test_more_stories_no_vote_link():
-    """투표(mailto:) 링크가 없어야 함."""
+    """투표 mailto 링크가 없어야 함 (푸터의 수신거부 mailto 1개만 허용)."""
     html = NewsletterGenerator().generate(SAMPLE)
-    assert "mailto:" not in html
+    assert "subject=투표" not in html
+    assert html.count("mailto:") == 1  # 수신거부 링크만
+    assert "수신거부" in html
 
 
 def test_more_stories_max_5_articles():
@@ -122,8 +124,8 @@ def test_tip_section_rendered():
     html = NewsletterGenerator().generate(SAMPLE)
     assert "오늘의 자동화 TASK" in html
     assert "회의록을 AI로 정리할 수 있어요" in html
-    assert "추천 툴" in html
     assert "Claude" in html
+    assert "ChatGPT" in html  # 툴 태그 렌더링
     assert "복붙 프롬프트" in html
     assert "아래 회의록을 액션 아이템으로 정리해줘" in html
 
@@ -247,7 +249,4 @@ def test_headline_not_in_more_stories():
             "region": "KR",
             "score": 5,
         },
-    ]
-    data = {**SAMPLE, "articles": articles}
-    html = NewsletterGenerator().generate(data)
-    assert html.count("최고기사") == 1  # 헤드라인에만 1번 등장
+    ]

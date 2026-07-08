@@ -2,7 +2,6 @@
 """AI 콘텐츠 생성 에이전트 - 메인 파이프라인"""
 
 import sys
-import anthropic
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -10,13 +9,15 @@ from zoneinfo import ZoneInfo
 from config.settings import (
     CLAUDE_API_KEY, CLAUDE_MODEL,
     NOTION_API_KEY, NOTION_DATABASE_ID,
-    RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC,
+    RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC, EMAIL_ENABLED,
+    NOTION_ENABLED,
     GSTACK_BINARY, TRENDS_DIR, OUTPUT_DIR,
     KR_MAX, GL_MAX, MIN_NEW_ARTICLES,
 )
 from config.feeds import RSS_FEEDS, CRAWL_TARGETS
 from collector.rss_collector import RSSCollector
 from collector.gstack_crawler import GstackCrawler
+from collector.seen_store import load_seen, record_seen
 from summarizer.claude_summarizer import ClaudeSummarizer
 from content_generator.newsletter import NewsletterGenerator
 from content_generator.linkedin import LinkedInGenerator
@@ -48,6 +49,15 @@ def load_seen_urls(trends_dir: Path) -> set:
     return seen
 
 
+def _flag_value(flag: str) -> str:
+    """--flag 값 파싱 (예: --test-to me@example.com)"""
+    if flag in sys.argv:
+        i = sys.argv.index(flag)
+        if i + 1 < len(sys.argv):
+            return sys.argv[i + 1]
+    return ""
+
+
 def prioritize(articles: list) -> list:
     kr = [a for a in articles if a["region"] == "KR"][:KR_MAX]
     gl = [a for a in articles if a["region"] == "GL"][:GL_MAX]
@@ -56,6 +66,9 @@ def prioritize(articles: list) -> list:
 
 def main():
     preview = "--preview" in sys.argv
+    test_to = _flag_value("--test-to")
+    if test_to:
+        print(f"[테스트 모드] {test_to}에게만 발송 — Notion·발송 이력·구독자 발송 없음\n")
     KST = ZoneInfo("Asia/Seoul")
     today = datetime.now(KST).strftime("%Y-%m-%d")
     TRENDS_DIR.mkdir(exist_ok=True)
@@ -75,7 +88,10 @@ def main():
 
     # 3/8 중복 제거 + 우선순위
     print("3/8 중복 제거 및 정렬 중...")
-    seen = load_seen_urls(TRENDS_DIR)
+    seen_file = TRENDS_DIR / "seen_urls.json"
+    seen = load_seen(seen_file)
+    if not seen:  # 상태 파일이 없으면 기존 trend 파일에서 시드 (마이그레이션)
+        seen = load_seen_urls(TRENDS_DIR)
     seen_in_run: set = set()
     all_articles = []
     for a in rss_articles + crawled:
@@ -88,11 +104,12 @@ def main():
     print(f"    → 신규 {len(articles)}개 (국내:{kr_n}, 글로벌:{gl_n})")
 
     if len(articles) < MIN_NEW_ARTICLES:
-        print(f"\n신규 기사 {len(articles)}개 - {MIN_NEW_ARTICLES}개 미달. 발행 건너뜀.")
-        return
+        if test_to and articles:
+            print(f"    [테스트 모드] 기사 {len(articles)}개뿐이지만 계속 진행.")
+        else:
+            print(f"\n신규 기사 {len(articles)}개 - {MIN_NEW_ARTICLES}개 미달. 발행 건너뜀.")
+            return
 
-    # Claude 클라이언트
-    claude_client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
     summarizer = ClaudeSummarizer(api_key=CLAUDE_API_KEY, model=CLAUDE_MODEL)
 
     # 4/8 기사 요약
@@ -120,16 +137,23 @@ def main():
 
     tip = summarizer.generate_tip(summarized, exclude_names=exclude_names)
 
-    # 사용한 카테고리 저장 (최근 2개 유지)
-    if tip.get("category_name"):
+    # 사용한 카테고리 저장 (최근 2개 유지) — 테스트 모드에서는 기록 안 함
+    if tip.get("category_name") and not test_to:
         recent = exclude_names[-1:] + [tip["category_name"]]  # 직전 1개 + 이번
         last_tip_file.write_text("\n".join(recent), encoding="utf-8")
+
+    issue_file = TRENDS_DIR / "issue_count.txt"
+    try:
+        issue_no = int(issue_file.read_text(encoding="utf-8").strip()) + 1
+    except (OSError, ValueError):
+        issue_no = 1
 
     data = {
         "date": today,
         "trends": trends,
         "articles": summarized,
         "tip": tip,
+        "issue_no": issue_no,
     }
 
     # 6/8 뉴스레터 생성
@@ -137,7 +161,8 @@ def main():
     gen = NewsletterGenerator()
     html = gen.generate(data)
     txt = gen.generate_txt(data)
-    trend_file = TRENDS_DIR / f"trend_{today}.txt"
+    trend_prefix = "test_trend" if test_to else "trend"
+    trend_file = TRENDS_DIR / f"{trend_prefix}_{today}.txt"
     trend_file.write_text(txt, encoding="utf-8")
     print(f"    → {trend_file}")
 
@@ -173,10 +198,32 @@ def main():
         return
 
     # 8/8 발행
-    NotionPublisher(NOTION_API_KEY, NOTION_DATABASE_ID).upload(today, trends, summarized)
-    EmailPublisher(RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC).send(
-        subject=f"🤖 AI 브리핑 | {today}", html=html
-    )
+    if test_to:
+        print(f"8/8 테스트 발송 → {test_to}")
+        ok = EmailPublisher(RESEND_API_KEY, EMAIL_FROM, [test_to], []).send(
+            subject=f"[테스트] 🤖 AI 브리핑 | {today}", html=html
+        )
+        print("\n테스트 발송 완료!" if ok else "\n테스트 발송 실패 — RESEND_API_KEY·EMAIL_FROM 확인.")
+        return
+
+    if NOTION_ENABLED:
+        NotionPublisher(NOTION_API_KEY, NOTION_DATABASE_ID).upload(today, trends, summarized)
+    else:
+        print("[notion] 업로드 비활성화 (NOTION_ENABLED=false)")
+    if EMAIL_ENABLED:
+        sent = EmailPublisher(RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, EMAIL_BCC).send(
+            subject=f"🤖 AI 브리핑 | {today}", html=html
+        )
+    else:
+        print("[email] 발송 비활성화 (EMAIL_ENABLED=false)")
+        sent = False
+
+    # 발행(이메일 발송) 성공 시에만 이력·발행 호수 기록 (실패/비활성화 시 다음 실행에서 재시도)
+    if sent:
+        record_seen(seen_file, seen | {a["url"] for a in articles}, today)
+        issue_file.write_text(str(issue_no), encoding="utf-8")
+    else:
+        print("[warn] 이메일 미발송 — 발송 이력을 기록하지 않습니다 (다음 실행에서 재시도).")
     print("\n파이프라인 완료!")
 
 

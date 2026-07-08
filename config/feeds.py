@@ -13,7 +13,7 @@ RSS_FEEDS = [
 
 # gstack으로 크롤링할 대상 (RSS 없거나 불안정)
 CRAWL_TARGETS = [
-    {"label": "OpenAI Blog", "region": "GL", "url": "https://openai.com/news", "selector": "article a", "max": 3},
-    {"label": "Anthropic Blog", "region": "GL", "url": "https://www.anthropic.com/news", "selector": "article a", "max": 3},
-    {"label": "Google DeepMind", "region": "GL", "url": "https://deepmind.google/discover/blog/", "selector": "article a", "max": 2},
+    {"label": "OpenAI Blog", "region": "GL", "url": "https://openai.com/news", "max": 3},
+    {"label": "Anthropic Blog", "region": "GL", "url": "https://www.anthropic.com/news", "max": 3},
+    {"label": "Google DeepMind", "region": "GL", "url": "https://deepmind.google/discover/blog/", "max": 2},
 ]

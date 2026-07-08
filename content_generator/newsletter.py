@@ -1,6 +1,8 @@
 from html import escape
 from typing import Dict
 
+from config.settings import EMAIL_FROM
+
 
 class NewsletterGenerator:
     def _section_label(self, text: str) -> str:
@@ -11,7 +13,7 @@ class NewsletterGenerator:
     <td height="2" bgcolor="#111827"></td>
   </tr>
   <tr>
-    <td style="padding-top:6px;font-size:9px;font-weight:900;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">{text}</td>
+    <td style="padding-top:6px;font-size:11px;font-weight:700;letter-spacing:2px;color:#111827;font-family:'Segoe UI',Arial,sans-serif;">{text}</td>
   </tr>
 </table>"""
 
@@ -20,7 +22,7 @@ class NewsletterGenerator:
         return f'<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td height="{height}"></td></tr></table>'
 
     def generate(self, data: Dict) -> str:
-        """에디토리얼 매거진 스타일 HTML 뉴스레터 생성 (v2: 모노크롬 + Georgia)."""
+        """에디토리얼 매거진 스타일 HTML 뉴스레터 생성."""
         date = escape(data["date"])
         trends_raw = data.get("trends", "")
         articles = data["articles"]
@@ -40,8 +42,8 @@ class NewsletterGenerator:
             trends_banner = f"""
 <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr>
-    <td bgcolor="#374151" style="padding:10px 28px;font-size:9px;letter-spacing:0;color:#e5e7eb;font-family:'Segoe UI',Arial,sans-serif;line-height:1.8;word-break:keep-all;">
-      <span style="font-weight:900;">🔑 TODAY&#x27;S TRENDS</span><br><span style="font-weight:400;">{trends_lines}</span>
+    <td bgcolor="#374151" style="padding:12px 28px;font-size:12px;letter-spacing:0;color:#e5e7eb;font-family:'Segoe UI',Arial,sans-serif;line-height:1.8;word-break:keep-all;">
+      <span style="font-weight:700;">🔑 TODAY&#x27;S TRENDS</span><br><span style="font-weight:400;">{trends_lines}</span>
     </td>
   </tr>
 </table>"""
@@ -57,7 +59,7 @@ class NewsletterGenerator:
         if headline_article:
             a = headline_article
             bullets_html = "".join(
-                f"<tr><td style='padding:2px 0;color:#374151;font-size:11px;font-family:\"Segoe UI\",Arial,sans-serif;'>• {escape(b)}</td></tr>"
+                f"<tr><td style='padding:3px 0;color:#374151;font-size:13px;font-family:\"Segoe UI\",Arial,sans-serif;'>• {escape(b)}</td></tr>"
                 for b in a.get("bullets", [])
             )
             headline_html = f"""
@@ -69,13 +71,13 @@ class NewsletterGenerator:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding-bottom:12px;">
-            <span style="background:#111827;color:#d1d5db;font-size:8px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
+            <span style="background:#111827;color:#d1d5db;font-size:11px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
             &nbsp;
-            <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
+            <span style="color:#9ca3af;font-size:11px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
           </td>
         </tr>
         <tr>
-          <td style="font-size:14px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:12px;font-family:Georgia,'Times New Roman',serif;">{escape(a['title'])}</td>
+          <td style="font-size:20px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:12px;font-family:Georgia,'Times New Roman',serif;">{escape(a['title'])}</td>
         </tr>
         <tr>
           <td style="padding-bottom:8px;">
@@ -85,10 +87,10 @@ class NewsletterGenerator:
           </td>
         </tr>
         <tr>
-          <td style="font-size:10px;color:#6b7280;font-style:italic;padding-bottom:10px;font-family:'Segoe UI',Arial,sans-serif;">👉 {escape(a.get('implication', ''))}</td>
+          <td style="font-size:12px;color:#6b7280;font-style:italic;padding-bottom:10px;font-family:'Segoe UI',Arial,sans-serif;">👉 {escape(a.get('implication', ''))}</td>
         </tr>
         <tr>
-          <td><a href="{escape(a['url'])}" style="font-size:10px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a></td>
+          <td><a href="{escape(a['url'])}" style="font-size:12px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a></td>
         </tr>
       </table>
     </td>
@@ -104,7 +106,7 @@ class NewsletterGenerator:
             tools_html = ""
             if tip.get("tools"):
                 tags = "".join(
-                    f'<span style="background:#e5e7eb;color:#374151;font-size:9px;font-weight:700;padding:3px 10px;font-family:\'Segoe UI\',Arial,sans-serif;">{escape(t)}</span>&nbsp;'
+                    f'<span style="background:#e5e7eb;color:#374151;font-size:11px;font-weight:700;padding:3px 10px;font-family:\'Segoe UI\',Arial,sans-serif;">{escape(t)}</span>&nbsp;'
                     for t in tip["tools"]
                 )
                 tools_html = f'<tr><td style="padding-bottom:14px;">{tags}</td></tr>'
@@ -118,19 +120,19 @@ class NewsletterGenerator:
                     num = step_nums[i]
                     arrow = ""
                     if i < len(steps_to_render) - 1:
-                        arrow = '<div style="text-align:center;color:#9ca3af;font-size:12px;line-height:1;margin:2px 0 2px 22px;">↓</div>'
+                        arrow = '<div style="text-align:center;color:#9ca3af;font-size:13px;line-height:1;margin:2px 0 2px 22px;">↓</div>'
                     rows += f"""
 <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:2px;">
   <tr>
-    <td width="22" valign="top" style="padding-right:10px;"><span style="display:block;width:22px;height:22px;background:#111827;color:#fff;font-size:11px;font-weight:700;text-align:center;font-family:'Segoe UI',Arial,sans-serif;line-height:22px;">{num}</span></td>
-    <td style="font-size:11px;color:#374151;line-height:1.6;padding-top:3px;font-family:'Segoe UI',Arial,sans-serif;">{escape(step)}</td>
+    <td width="24" valign="top" style="padding-right:10px;"><span style="display:block;width:24px;height:24px;background:#111827;color:#fff;font-size:12px;font-weight:700;text-align:center;font-family:'Segoe UI',Arial,sans-serif;line-height:24px;">{num}</span></td>
+    <td style="font-size:13px;color:#374151;line-height:1.6;padding-top:4px;font-family:'Segoe UI',Arial,sans-serif;">{escape(step)}</td>
   </tr>
 </table>
 {arrow}"""
                 steps_html = f"""
 <tr>
   <td style="padding-bottom:14px;">
-    <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">🪜 이렇게 따라하세요</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#6b7280;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">🪜 이렇게 따라하세요</div>
     <div style="background:#ffffff;border:1px solid #e5e7eb;padding:12px 14px;">
       {rows}
     </div>
@@ -142,8 +144,8 @@ class NewsletterGenerator:
                 prompt_html = f"""
 <tr>
   <td>
-    <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">📋 복붙 프롬프트 — 그대로 붙여넣고 [ ] 부분만 수정하세요</div>
-    <div style="background:#111827;padding:14px 16px;font-family:'Courier New',Courier,monospace;font-size:11px;color:#e5e7eb;line-height:1.8;word-break:keep-all;white-space:pre-wrap;">{escape(tip['prompt'])}</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">📋 복붙 프롬프트 — 그대로 붙여넣고 [ ] 부분만 수정하세요</div>
+    <div style="background:#111827;padding:14px 16px;font-family:'Courier New',Courier,monospace;font-size:12px;color:#e5e7eb;line-height:1.8;word-break:keep-all;white-space:pre-wrap;">{escape(tip['prompt'])}</div>
   </td>
 </tr>"""
 
@@ -157,8 +159,8 @@ class NewsletterGenerator:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding-bottom:12px;">
-            <div style="font-size:8px;font-weight:900;letter-spacing:1px;color:#6b7280;margin-bottom:4px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK</div>
-            <div style="font-size:11px;color:#374151;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{task_text}</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK</div>
+            <div style="font-size:13px;color:#374151;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{task_text}</div>
           </td>
         </tr>
         {tools_html}
@@ -187,19 +189,19 @@ class NewsletterGenerator:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding-bottom:6px;">
-            <span style="background:#f3f4f6;color:#374151;font-size:8px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
+            <span style="background:#f3f4f6;color:#374151;font-size:11px;font-weight:700;padding:2px 8px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('category', ''))}</span>
             &nbsp;
-            <span style="color:#9ca3af;font-size:9px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
+            <span style="color:#9ca3af;font-size:11px;font-family:'Segoe UI',Arial,sans-serif;">{escape(a.get('label', ''))} · {escape(a.get('region', ''))}</span>
           </td>
         </tr>
         <tr>
-          <td style="font-size:12px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:6px;font-family:Georgia,'Times New Roman',serif;">{i + 1}. {escape(a['title'])}</td>
+          <td style="font-size:15px;font-weight:700;color:#111827;line-height:1.4;padding-bottom:6px;font-family:Georgia,'Times New Roman',serif;">{i + 1}. {escape(a['title'])}</td>
         </tr>
         <tr>
-          <td style="color:#6b7280;font-size:10px;line-height:1.7;font-family:'Segoe UI',Arial,sans-serif;">{bullets_text}</td>
+          <td style="color:#6b7280;font-size:13px;line-height:1.7;font-family:'Segoe UI',Arial,sans-serif;">{bullets_text}</td>
         </tr>
         <tr>
-          <td style="padding-top:10px;"><a href="{escape(a['url'])}" style="font-size:10px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a></td>
+          <td style="padding-top:10px;"><a href="{escape(a['url'])}" style="font-size:12px;color:#4b5563;font-weight:700;text-decoration:underline;font-family:'Segoe UI',Arial,sans-serif;">원문 보기 →</a></td>
         </tr>
       </table>
     </td>
@@ -228,12 +230,12 @@ class NewsletterGenerator:
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td>
-                  <div style="font-size:9px;letter-spacing:3px;color:#9ca3af;font-weight:700;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">DAILY DIGEST</div>
+                  <div style="font-size:10px;letter-spacing:3px;color:#9ca3af;font-weight:700;margin-bottom:8px;font-family:'Segoe UI',Arial,sans-serif;">DAILY DIGEST</div>
                   <span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#ffffff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
                 </td>
                 <td align="right" style="vertical-align:bottom;padding-bottom:4px;">
-                  <div style="color:#6b7280;font-size:9px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">VOL. 01</div>
-                  <div style="color:#9ca3af;font-size:9px;margin-top:2px;font-family:'Segoe UI',Arial,sans-serif;">{date}</div>
+                  <div style="color:#6b7280;font-size:10px;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;">VOL. {data.get("issue_no", 1):02d}</div>
+                  <div style="color:#9ca3af;font-size:10px;margin-top:2px;font-family:'Segoe UI',Arial,sans-serif;">{date}</div>
                 </td>
               </tr>
               <tr>
@@ -258,8 +260,9 @@ class NewsletterGenerator:
         <!-- 푸터 -->
         <tr>
           <td bgcolor="#111827" style="padding:16px 28px;text-align:center;">
-            <span style="font-size:16px;font-weight:900;color:#ffffff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:16px;font-weight:900;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
-            <div style="color:#4b5563;font-size:8px;letter-spacing:1px;margin-top:4px;font-family:'Segoe UI',Arial,sans-serif;">매일 오전 8시 · AI 뉴스 다이제스트</div>
+            <span style="font-size:16px;font-weight:700;color:#ffffff;font-family:Georgia,'Times New Roman',serif;">AI </span><span style="font-size:16px;font-weight:700;color:#e5e7eb;font-family:Georgia,'Times New Roman',serif;">NEWS</span>
+            <div style="color:#4b5563;font-size:10px;letter-spacing:1px;margin-top:4px;font-family:'Segoe UI',Arial,sans-serif;">월·수·금 오전 8시 · AI 뉴스 다이제스트</div>
+            <div style="margin-top:8px;"><a href="mailto:{escape(EMAIL_FROM or 'jmyoonkr@gmail.com')}?subject=수신거부" style="color:#6b7280;font-size:10px;font-family:'Segoe UI',Arial,sans-serif;text-decoration:underline;">수신거부</a></div>
           </td>
         </tr>
 
@@ -281,8 +284,8 @@ class NewsletterGenerator:
         lines += [t for t in trends.split("\n") if t.strip()]
         lines += ["", "---"]
 
-        for a in articles:
-            lines.append(f"\n① {a['title']}")
+        for i, a in enumerate(articles, 1):
+            lines.append(f"\n{i}. {a['title']}")
             lines.append(f"   출처: {a.get('label', '')} ({a.get('region', '')})")
             for b in a.get("bullets", []):
                 lines.append(f"   - {b}")

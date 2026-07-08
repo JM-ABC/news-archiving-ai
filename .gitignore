@@ -3,8 +3,13 @@ __pycache__/
 *.pyc
 *.pyo
 output/
-trends/
+trends/*
 *.html
 .omc/
 .worktrees/
 .superpowers/
+.gstack/
+
+# 발송 이력·발행 호수 상태 파일은 CI 지속성을 위해 커밋
+!trends/seen_urls.json
+!trends/issue_count.txt

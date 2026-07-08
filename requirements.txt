@@ -1,6 +1,6 @@
-anthropic>=0.40.0
-feedparser>=6.0.11
-notion-client>=2.2.1
-resend>=2.0.0
-python-dotenv>=1.0.0
-requests>=2.31.0
+anthropic==0.116.0
+feedparser==6.0.12
+notion-client==3.1.0
+resend==2.32.2
+python-dotenv==1.2.2
+requests==2.34.2

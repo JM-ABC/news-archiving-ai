@@ -9,11 +9,13 @@ CLAUDE_MODEL = "claude-haiku-4-5-20251001"
 
 NOTION_API_KEY = os.getenv("NOTION_API_KEY", "")
 NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID", "")
+NOTION_ENABLED = os.getenv("NOTION_ENABLED", "false").lower() in ("true", "1", "yes")
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 EMAIL_FROM = os.getenv("EMAIL_FROM", "")
 EMAIL_TO = [e.strip() for e in os.getenv("EMAIL_TO", "").split(",") if e.strip()]
 EMAIL_BCC = [e.strip() for e in os.getenv("EMAIL_BCC", "").split(",") if e.strip()]
+EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "false").lower() in ("true", "1", "yes")
 
 BASE_DIR = Path(__file__).parent.parent
 TRENDS_DIR = BASE_DIR / "trends"

@@ -1,107 +1,109 @@
+import re
 import anthropic
 import json
 import random
 from typing import List, Dict
 
 TIP_CATEGORIES = [
-    # 마케팅
+    # 파일·데이터 처리
     {
-        "name": "마케팅 소재 멀티포맷 변환",
-        "difficulty": "prompt-only",
-        "example": "상품 특징 3줄을 넣으면 배너 카피·SNS 문구·이메일 제목 한번에 생성",
-    },
-    {
-        "name": "이메일 마케팅 시퀀스 자동화",
-        "difficulty": "prompt-only",
-        "example": "신규 가입자 온보딩 이메일 5단계 시퀀스(제목·본문·CTA 포함) 자동 작성",
-    },
-    {
-        "name": "광고 카피 A/B 테스트 초안",
-        "difficulty": "prompt-only",
-        "example": "구글·메타 광고 소재를 각 3가지 버전(헤드라인+설명문)으로 한번에 생성",
-    },
-    {
-        "name": "콘텐츠·SNS 변환",
-        "difficulty": "prompt-only",
-        "example": "블로그 초안을 링크드인·스레드·인스타 포맷 3종으로 변환",
-    },
-    {
-        "name": "시즌 프로모션 기획 초안",
-        "difficulty": "prompt-only",
-        "example": "행사 일정·할인율·타겟 상품만 알려주면 프로모션 기획서 초안 자동 작성",
-    },
-    {
-        "name": "월간 SNS 콘텐츠 캘린더 자동화",
-        "difficulty": "prompt-only",
-        "example": "브랜드 키워드·타겟 고객만 입력하면 30일치 SNS 포스팅 주제·캡션 초안 생성",
-    },
-    # 이커머스
-    {
-        "name": "상품 상세페이지 카피 작성",
-        "difficulty": "prompt-only",
-        "example": "상품명·스펙만 넣으면 구매욕 자극하는 상세페이지 문구 자동 생성",
-    },
-    {
-        "name": "고객 리뷰 자동 수집·분석",
+        "name": "CSV·엑셀 데이터 분석 자동화",
         "difficulty": "claude-code",
-        "example": "상품 URL만 붙여넣으면 Claude Code가 playwright를 설치·실행해서 JS 렌더링 리뷰 페이지를 크롤링한 뒤 불만·긍정·CS 위험 리뷰를 분류해서 파일로 저장. 프롬프트에는 playwright 설치 지시와 URL을 포함할 것. 마지막 step에 '중간에 권한 확인이 뜨면 허용' 안내 추가.",
+        "example": "판매 데이터 CSV를 Claude Code에 넣으면 베스트셀러·이상치·매출 추이를 자동 분석하고 차트 이미지와 요약 리포트를 파일로 저장",
     },
     {
-        "name": "CS 응대 템플릿 자동화",
-        "difficulty": "prompt-only",
-        "example": "환불·교환·배송지연 유형별 CS 답변 템플릿 10종 자동 생성",
-    },
-    {
-        "name": "상품 태그·카테고리 자동 분류",
+        "name": "여러 문서에서 정보 자동 추출·통합",
         "difficulty": "claude-code",
-        "example": "상품명 목록 CSV를 넣으면 카테고리·검색 태그 자동 분류해서 새 열로 추가",
+        "example": "계약서·이메일·보고서 수십 개 파일을 폴더에 넣으면 Claude Code가 핵심 정보(날짜·금액·담당자)를 읽어서 엑셀 한 장으로 자동 통합",
     },
     {
-        "name": "경쟁사 가격·프로모션 모니터링",
+        "name": "파일 일괄 처리·정리 자동화",
         "difficulty": "claude-code",
-        "example": "경쟁사 URL 목록을 넣으면 Claude Code가 가격·할인 정보를 크롤링해서 비교표 자동 생성",
+        "example": "수백 개 파일을 날짜·분류·키워드 기준으로 자동 정리하거나 파일명 일괄 변경하는 스크립트를 Claude Code가 즉시 작성하고 실행까지",
     },
-    # 세일즈
+    # 웹 수집
     {
-        "name": "영업 제안서·견적서 자동 초안",
-        "difficulty": "prompt-only",
-        "example": "고객사 업종·니즈·예산만 입력하면 맞춤형 제안서 초안과 핵심 어필 포인트 자동 작성",
-    },
-    {
-        "name": "영업 이메일 개인화 자동화",
-        "difficulty": "prompt-only",
-        "example": "잠재 고객 정보(직책·업종·pain point)를 넣으면 1:1 개인화 콜드 이메일 3가지 버전 생성",
-    },
-    {
-        "name": "리드 자격 심사 자동화",
-        "difficulty": "prompt-only",
-        "example": "CRM 메모·통화 내용을 붙여넣으면 BANT 기준으로 리드 등급과 다음 액션 자동 분류",
-    },
-    {
-        "name": "고객 이탈 징후 분석",
-        "difficulty": "prompt-only",
-        "example": "고객 구매 이력·CS 문의 내용을 넣으면 이탈 위험 신호와 리텐션 대응 메시지 자동 생성",
-    },
-    # 데이터 분석
-    {
-        "name": "판매 데이터 리포트 자동화",
+        "name": "웹 정보 자동 수집·요약",
         "difficulty": "claude-code",
-        "example": "주간 판매 엑셀을 넣으면 베스트셀러·재고 위험 상품·매출 추이 요약 리포트 생성",
+        "example": "업계 뉴스·공고 사이트 URL 목록을 주면 Claude Code가 최신 정보를 크롤링해서 주요 내용만 정리한 요약 파일을 생성",
     },
     {
-        "name": "데이터 분석·인사이트",
+        "name": "경쟁사 정보 모니터링 자동화",
+        "difficulty": "claude-code",
+        "example": "경쟁사 웹사이트 URL을 넣으면 가격·프로모션·신제품 정보를 수집해서 이전 버전과 비교한 변경 내역 보고서를 자동 생성",
+    },
+    # 보고서·문서 자동화
+    {
+        "name": "회의록 자동 정리",
+        "difficulty": "claude-code",
+        "example": "회의 메모나 녹취 텍스트를 파일로 주면 Claude Code가 안건별 요약·결정사항·담당자별 액션아이템을 정리한 회의록 파일을 자동 생성",
+    },
+    {
+        "name": "정기 보고서 자동 생성",
+        "difficulty": "claude-code",
+        "example": "매출·비용·KPI 데이터 파일을 넣으면 Claude Code가 전월 대비 분석·차트·경영진 요약이 포함된 HTML 보고서를 자동으로 생성",
+    },
+    {
+        "name": "긴 문서 핵심 요약",
         "difficulty": "prompt-only",
-        "example": "판매 CSV를 붙여넣어 상위 제품·이상치 자동 분석",
+        "example": "계약서·제안서·논문 등 긴 문서를 Claude Code에 드래그앤드롭하면 핵심 조항·위험 요소·결론을 3분 안에 읽을 수 있는 요약본으로 변환",
+    },
+    # Git·버전관리
+    {
+        "name": "커밋 메시지·CHANGELOG 자동화",
+        "difficulty": "claude-code",
+        "example": "코드 변경 후 Claude Code에 '변경사항 보고 커밋 메시지 작성해줘'라고 하면 컨벤션에 맞는 메시지와 CHANGELOG.md를 자동으로 작성하고 커밋까지",
     },
     {
-        "name": "광고 성과 리포트 자동화",
+        "name": "GitHub PR 리뷰 자동화",
         "difficulty": "claude-code",
-        "example": "구글·메타 광고 성과 CSV를 넣으면 ROAS·CPA·CTR 비교와 예산 조정 권고안 자동 생성",
+        "example": "변경된 파일을 주면 Claude Code가 버그·보안 취약점·개선사항을 분석하고 GitHub PR에 올릴 리뷰 코멘트 초안을 자동 작성",
+    },
+    # 자동화 스크립트
+    {
+        "name": "반복 업무 자동화 스크립트",
+        "difficulty": "claude-code",
+        "example": "매일 반복되는 파일 정리·데이터 수집·보고서 발송 업무를 설명하면 Claude Code가 파이썬 스크립트를 작성하고 바로 실행까지 완료",
     },
     {
-        "name": "고객 세그먼트 분석 자동화",
+        "name": "외부 서비스 API 연동 자동화",
         "difficulty": "claude-code",
-        "example": "주문 데이터 CSV를 넣으면 RFM 기반 고객 등급 분류와 등급별 마케팅 전략 자동 생성",
+        "example": "Slack·Notion·Google Sheets API 키를 주면 서비스 간 데이터를 자동으로 연동하는 스크립트를 Claude Code가 작성하고 실제 동작을 확인",
+    },
+    # MCP·외부 도구
+    {
+        "name": "Notion·Slack MCP 연동",
+        "difficulty": "prompt-only",
+        "example": "Claude Code에 MCP로 Notion과 Slack을 연결하면 'Notion 프로젝트 DB에서 오늘 마감 항목 뽑아서 Slack 채널에 요약 발송해줘'가 한 문장으로 실행",
+    },
+    {
+        "name": "Google Drive·Sheets 자동 처리",
+        "difficulty": "claude-code",
+        "example": "Google Sheets URL을 주면 Claude Code가 데이터를 읽어서 분석·정리 후 결과를 새 시트에 자동으로 입력하는 스크립트를 작성하고 실행",
+    },
+    # CLAUDE.md·설정
+    {
+        "name": "CLAUDE.md로 팀 작업 규칙 설정",
+        "difficulty": "prompt-only",
+        "example": "프로젝트 폴더에 CLAUDE.md를 만들어 '항상 한국어로 응답', '이 파일은 수정 금지' 같은 규칙을 설정하면 이후 매번 설명 없이 자동 적용",
+    },
+    # 멀티 에이전트
+    {
+        "name": "여러 파일 병렬 동시 분석",
+        "difficulty": "claude-code",
+        "example": "10개 부서 월간 보고서 파일을 주면 Claude Code가 서브에이전트로 동시에 분석해서 부서별 요약과 전사 종합 리포트를 한번에 생성",
+    },
+    # GitHub Actions
+    {
+        "name": "GitHub Actions 자동화 설정",
+        "difficulty": "claude-code",
+        "example": "코드를 GitHub에 올릴 때마다 자동으로 테스트·배포·알림이 실행되도록 Claude Code가 .github/workflows 파일을 작성하고 설정까지 완료",
+    },
+    # Claude API
+    {
+        "name": "사내 업무에 Claude AI 붙이기",
+        "difficulty": "claude-code",
+        "example": "Anthropic SDK를 Claude Code로 작성하면 회사 챗봇·자동 분류·문서 요약 등 사내 업무에 AI 기능을 추가하는 코드를 빠르게 완성",
     },
 ]
 
@@ -184,7 +186,6 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         )
         raw = msg.content[0].text.strip()
         # 번호로 시작하는 줄만 파싱, em dash 등 cp949 불가 문자 제거
-        import re
         lines = [l.strip() for l in raw.splitlines() if re.match(r"^\d+\.", l.strip())]
         result = lines if lines else raw.splitlines()
         return [l.replace("\u2014", "-").replace("\u2013", "-").replace("\u2022", "-") for l in result]
@@ -214,7 +215,6 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         )
         raw = msg.content[0].text.strip()
         # 마크다운 기호 후처리 제거
-        import re
         raw = re.sub(r'\*\*(.+?)\*\*', r'\1', raw)   # **볼드** → 볼드
         raw = re.sub(r'\*(.+?)\*', r'\1', raw)        # *이탤릭* → 이탤릭
         raw = re.sub(r'^#{1,6}\s*', '', raw, flags=re.MULTILINE)  # # 제목 제거
@@ -245,32 +245,38 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
 
         selected_category = random.choice(pool)
 
-        prompt = f"""오늘의 AI 팁 카테고리: {selected_category["name"]}
-난이도: {selected_category["difficulty"]}
+        difficulty_guide = (
+            "Claude Code 데스크탑 앱에서 실행하는 흐름으로 작성. 앱 열기 → 폴더 열기 또는 파일 드래그 → 프롬프트 입력 → 결과 확인 순서."
+            if selected_category["difficulty"] == "claude-code"
+            else "Claude.ai 웹사이트 또는 Claude 앱에서 프롬프트만 붙여넣어 실행하는 흐름으로 작성."
+        )
+
+        prompt = f"""오늘의 Claude Code 활용 팁 카테고리: {selected_category["name"]}
+실행 방식: {selected_category["difficulty"]} — {difficulty_guide}
 참고 예시: {selected_category["example"]}
 
-위 카테고리에서 30-40대 직장인이 지금 바로 실행 가능한 AI 활용법을 하나 제안해줘.
+위 카테고리에서 30-40대 직장인이 Claude Code로 지금 바로 실행 가능한 구체적인 활용법을 하나 제안해줘.
 오늘 뉴스 (참고만, 얽매이지 말 것): {articles_text}
 
 아래 JSON 형식으로만 반환해 (마크다운 코드블록 없이):
 {{
-  "task": "자동화 아이디어 설명 2-3문장 (~어요/에요 어체)",
+  "task": "어떤 상황에서 Claude Code가 무엇을 해결해주는지 2-3문장 (~어요/에요 어체)",
   "tools": ["툴1", "툴2"],
   "steps": [
-    "1단계 설명 (Claude Code에서 어디서 무엇을 누르는지까지 구체적으로)",
-    "2단계 설명",
-    "3단계 설명",
-    "4단계 설명 (결과 확인·저장 등 마무리)"
+    "1단계: Claude Code 앱에서 구체적으로 무엇을 하는지",
+    "2단계",
+    "3단계",
+    "4단계: 결과 확인 또는 파일 저장"
   ],
-  "prompt": "그 툴에 복붙할 수 있는 구체적 프롬프트 (한국어, 경로나 조건은 [대괄호]로 표시)"
+  "prompt": "Claude Code 입력창에 그대로 붙여넣을 수 있는 프롬프트 (한국어, 독자가 바꿀 부분은 [대괄호]로 표시)"
 }}
 
 스타일 규칙:
-- task: "상황 묘사 → Claude/Claude Code가 해결 → 실용적 이점" 3문장, ~어요/에요 어체
-- steps: Claude Code 앱을 열고 → 프롬프트 붙여넣고 → 결과 확인하는 흐름. 코딩 지식 없어도 따라할 수 있게. 각 단계 30자 이내.
-- prompt: [파일 경로], [조건] 형식으로 독자가 바꿀 부분을 명확히 표시. 2-4문장.
-- 전문 용어 설명 불필요 ("Python인지 몰라도 돼요" 같은 안심 문구 가끔 사용)
-- difficulty가 claude-code이면 tools에 반드시 "Claude Code" 포함
+- task: "이런 상황 있죠? → Claude Code에 이렇게 하면 → 이런 결과가 나와요" 흐름, ~어요/에요 어체
+- steps: 코딩 모르는 직장인이 그대로 따라할 수 있게. 각 단계 35자 이내. "Claude Code 앱을 열고" 같이 앱 조작 기준으로 서술.
+- prompt: [파일 경로], [회사명], [조건] 형식으로 독자가 바꿀 부분 명확히 표시. 실제로 동작하는 구체적 지시문.
+- 안심 문구 가끔 사용 ("코딩 몰라도 괜찮아요", "Python 설치 안 해도 돼요" 등)
+- difficulty가 claude-code이면 tools 첫 번째에 반드시 "Claude Code" 포함
 - 마크다운 기호(#, **, *) 사용 금지
 
 JSON:"""
@@ -292,7 +298,6 @@ JSON:"""
                 print(f"[WARN] generate_tip JSON 파싱 실패. 원문:\n{raw[:300]}")
                 return {}
 
-        import re
         def _strip_md(text: str) -> str:
             text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
             text = re.sub(r'\*(.+?)\*', r'\1', text)

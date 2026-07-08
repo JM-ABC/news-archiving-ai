@@ -19,7 +19,10 @@ jobs:
           python-version: '3.12'
 
       - name: 의존성 설치
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt pytest
+
+      - name: 테스트
+        run: python -m pytest tests/ -q
 
       - name: 파이프라인 실행
         env:
@@ -30,12 +33,29 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           EMAIL_BCC: ${{ secrets.EMAIL_BCC }}
+          EMAIL_ENABLED: "true"
         run: python main.py
+
+      - name: 산출물 중단 감지
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python scripts/healthcheck.py --check-stale --max-age-days 8
 
       - name: 결과 커밋
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add trends/ output/ || true
+          touch .github/.heartbeat
+          git add .github/.heartbeat trends/seen_urls.json trends/issue_count.txt output/ || true
           git diff --staged --quiet || git commit -m "feat: AI 뉴스 $(date +%Y-%m-%d) 자동 생성"
           git push
+
+      - name: 실패 알림
+        if: failure()
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python scripts/healthcheck.py --notify-failure
