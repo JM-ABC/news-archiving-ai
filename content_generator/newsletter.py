@@ -102,6 +102,11 @@ class NewsletterGenerator:
         # AI 팁 섹션
         if tip.get("task"):
             task_text = escape(tip["task"])
+            difficulty_badge = (
+                "\U0001f4bb Claude Code 앱 필요"
+                if tip.get("difficulty") == "claude-code"
+                else "\U0001f310 웹에서 바로 (설치 없음)"
+            )
 
             tools_html = ""
             if tip.get("tools"):
@@ -159,7 +164,7 @@ class NewsletterGenerator:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding-bottom:12px;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#6b7280;margin-bottom:6px;font-family:'Segoe UI',Arial,sans-serif;">✦ 오늘의 자동화 TASK <span style="background:#111827;color:#ffffff;padding:2px 8px;margin-left:4px;font-size:10px;font-weight:700;letter-spacing:0;">{escape(difficulty_badge)}</span></div>
             <div style="font-size:13px;color:#374151;line-height:1.8;font-family:'Segoe UI',Arial,sans-serif;">{task_text}</div>
           </td>
         </tr>

@@ -13,8 +13,8 @@ TIP_CATEGORIES = [
     },
     {
         "name": "여러 문서에서 정보 자동 추출·통합",
-        "difficulty": "claude-code",
-        "example": "계약서·이메일·보고서 수십 개 파일을 폴더에 넣으면 Claude Code가 핵심 정보(날짜·금액·담당자)를 읽어서 엑셀 한 장으로 자동 통합",
+        "difficulty": "prompt-only",
+        "example": "계약서·이메일·보고서 여러 개를 Claude.ai에 붙여넣거나 업로드하면 핵심 정보(날짜·금액·담당자)를 표로 정리해서 채팅창에 바로 보여줌",
     },
     {
         "name": "파일 일괄 처리·정리 자동화",
@@ -35,29 +35,18 @@ TIP_CATEGORIES = [
     # 보고서·문서 자동화
     {
         "name": "회의록 자동 정리",
-        "difficulty": "claude-code",
-        "example": "회의 메모나 녹취 텍스트를 파일로 주면 Claude Code가 안건별 요약·결정사항·담당자별 액션아이템을 정리한 회의록 파일을 자동 생성",
+        "difficulty": "prompt-only",
+        "example": "회의 메모나 녹취 텍스트를 Claude.ai에 붙여넣으면 안건별 요약·결정사항·담당자별 액션아이템을 정리해서 채팅창에 바로 보여줌",
     },
     {
         "name": "정기 보고서 자동 생성",
-        "difficulty": "claude-code",
-        "example": "매출·비용·KPI 데이터 파일을 넣으면 Claude Code가 전월 대비 분석·차트·경영진 요약이 포함된 HTML 보고서를 자동으로 생성",
+        "difficulty": "prompt-only",
+        "example": "매출·비용·KPI 숫자를 Claude.ai에 붙여넣으면 전월 대비 분석과 경영진 보고용 요약 문구를 바로 작성해줘서 복사해 쓰기만 하면 됨",
     },
     {
         "name": "긴 문서 핵심 요약",
         "difficulty": "prompt-only",
         "example": "계약서·제안서·논문 등 긴 문서를 Claude Code에 드래그앤드롭하면 핵심 조항·위험 요소·결론을 3분 안에 읽을 수 있는 요약본으로 변환",
-    },
-    # Git·버전관리
-    {
-        "name": "커밋 메시지·CHANGELOG 자동화",
-        "difficulty": "claude-code",
-        "example": "코드 변경 후 Claude Code에 '변경사항 보고 커밋 메시지 작성해줘'라고 하면 컨벤션에 맞는 메시지와 CHANGELOG.md를 자동으로 작성하고 커밋까지",
-    },
-    {
-        "name": "GitHub PR 리뷰 자동화",
-        "difficulty": "claude-code",
-        "example": "변경된 파일을 주면 Claude Code가 버그·보안 취약점·개선사항을 분석하고 GitHub PR에 올릴 리뷰 코멘트 초안을 자동 작성",
     },
     # 자동화 스크립트
     {
@@ -70,22 +59,10 @@ TIP_CATEGORIES = [
         "difficulty": "claude-code",
         "example": "Slack·Notion·Google Sheets API 키를 주면 서비스 간 데이터를 자동으로 연동하는 스크립트를 Claude Code가 작성하고 실제 동작을 확인",
     },
-    # MCP·외부 도구
-    {
-        "name": "Notion·Slack MCP 연동",
-        "difficulty": "prompt-only",
-        "example": "Claude Code에 MCP로 Notion과 Slack을 연결하면 'Notion 프로젝트 DB에서 오늘 마감 항목 뽑아서 Slack 채널에 요약 발송해줘'가 한 문장으로 실행",
-    },
     {
         "name": "Google Drive·Sheets 자동 처리",
         "difficulty": "claude-code",
         "example": "Google Sheets URL을 주면 Claude Code가 데이터를 읽어서 분석·정리 후 결과를 새 시트에 자동으로 입력하는 스크립트를 작성하고 실행",
-    },
-    # CLAUDE.md·설정
-    {
-        "name": "CLAUDE.md로 팀 작업 규칙 설정",
-        "difficulty": "prompt-only",
-        "example": "프로젝트 폴더에 CLAUDE.md를 만들어 '항상 한국어로 응답', '이 파일은 수정 금지' 같은 규칙을 설정하면 이후 매번 설명 없이 자동 적용",
     },
     # 멀티 에이전트
     {
@@ -93,19 +70,10 @@ TIP_CATEGORIES = [
         "difficulty": "claude-code",
         "example": "10개 부서 월간 보고서 파일을 주면 Claude Code가 서브에이전트로 동시에 분석해서 부서별 요약과 전사 종합 리포트를 한번에 생성",
     },
-    # GitHub Actions
-    {
-        "name": "GitHub Actions 자동화 설정",
-        "difficulty": "claude-code",
-        "example": "코드를 GitHub에 올릴 때마다 자동으로 테스트·배포·알림이 실행되도록 Claude Code가 .github/workflows 파일을 작성하고 설정까지 완료",
-    },
-    # Claude API
-    {
-        "name": "사내 업무에 Claude AI 붙이기",
-        "difficulty": "claude-code",
-        "example": "Anthropic SDK를 Claude Code로 작성하면 회사 챗봇·자동 분류·문서 요약 등 사내 업무에 AI 기능을 추가하는 코드를 빠르게 완성",
-    },
 ]
+
+# 신규 구독자 첫 팁으로 고정 — 설치·앱 실행 없이 붙여넣기만 하면 되는 카테고리
+ONBOARDING_TIP_CATEGORY = "긴 문서 핵심 요약"
 
 
 class ClaudeSummarizer:
@@ -221,10 +189,13 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         raw = re.sub(r'_(.+?)_', r'\1', raw)          # _밑줄_ → 밑줄
         return raw
 
-    def generate_tip(self, articles: List[Dict], exclude_names: list = None) -> dict:
+    def generate_tip(
+        self, articles: List[Dict], exclude_names: list = None, force_category_name: str = None
+    ) -> dict:
         """창의적인 AI 자동화 팁 생성. task/tools/steps/prompt/category_name dict 반환.
 
-        exclude_names: 직전 발송에서 사용한 카테고리명 목록. 연속 반복 방지.
+        exclude_names: 최근 발송에서 사용한 카테고리명 목록. 연속 반복 방지.
+        force_category_name: 지정하면 이 카테고리로 고정 (신규 구독자 온보딩 팁 등).
         """
         if not articles:
             return {}
@@ -237,45 +208,51 @@ JSON 배열만 반환 (마크다운 코드블록 없이):"""
         if not articles_text:
             return {}
 
-        pool = TIP_CATEGORIES
-        if exclude_names:
-            filtered = [c for c in TIP_CATEGORIES if c["name"] not in exclude_names]
-            if filtered:  # 필터 후 남은 게 있을 때만 적용
-                pool = filtered
+        if force_category_name:
+            forced = [c for c in TIP_CATEGORIES if c["name"] == force_category_name]
+            pool = forced if forced else TIP_CATEGORIES
+        else:
+            pool = TIP_CATEGORIES
+            if exclude_names:
+                filtered = [c for c in TIP_CATEGORIES if c["name"] not in exclude_names]
+                if filtered:  # 필터 후 남은 게 있을 때만 적용
+                    pool = filtered
 
         selected_category = random.choice(pool)
+        is_claude_code = selected_category["difficulty"] == "claude-code"
+        tool_name = "Claude Code" if is_claude_code else "Claude.ai"
 
         difficulty_guide = (
             "Claude Code 데스크탑 앱에서 실행하는 흐름으로 작성. 앱 열기 → 폴더 열기 또는 파일 드래그 → 프롬프트 입력 → 결과 확인 순서."
-            if selected_category["difficulty"] == "claude-code"
-            else "Claude.ai 웹사이트 또는 Claude 앱에서 프롬프트만 붙여넣어 실행하는 흐름으로 작성."
+            if is_claude_code
+            else "Claude.ai 웹사이트에 프롬프트만 붙여넣어 실행하는 흐름으로 작성. 앱 설치나 파일 업로드는 언급하지 말 것."
         )
 
-        prompt = f"""오늘의 Claude Code 활용 팁 카테고리: {selected_category["name"]}
+        prompt = f"""오늘의 {tool_name} 활용 팁 카테고리: {selected_category["name"]}
 실행 방식: {selected_category["difficulty"]} — {difficulty_guide}
 참고 예시: {selected_category["example"]}
 
-위 카테고리에서 30-40대 직장인이 Claude Code로 지금 바로 실행 가능한 구체적인 활용법을 하나 제안해줘.
+위 카테고리에서 30-40대 직장인이 {tool_name}로 지금 바로 실행 가능한 구체적인 활용법을 하나 제안해줘.
 오늘 뉴스 (참고만, 얽매이지 말 것): {articles_text}
 
 아래 JSON 형식으로만 반환해 (마크다운 코드블록 없이):
 {{
-  "task": "어떤 상황에서 Claude Code가 무엇을 해결해주는지 2-3문장 (~어요/에요 어체)",
+  "task": "어떤 상황에서 {tool_name}가 무엇을 해결해주는지 2-3문장 (~어요/에요 어체)",
   "tools": ["툴1", "툴2"],
   "steps": [
-    "1단계: Claude Code 앱에서 구체적으로 무엇을 하는지",
+    "1단계: {tool_name}에서 구체적으로 무엇을 하는지",
     "2단계",
     "3단계",
     "4단계: 결과 확인 또는 파일 저장"
   ],
-  "prompt": "Claude Code 입력창에 그대로 붙여넣을 수 있는 프롬프트 (한국어, 독자가 바꿀 부분은 [대괄호]로 표시)"
+  "prompt": "{tool_name} 입력창에 그대로 붙여넣을 수 있는 프롬프트 (한국어, 독자가 바꿀 부분은 [대괄호]로 표시)"
 }}
 
 스타일 규칙:
-- task: "이런 상황 있죠? → Claude Code에 이렇게 하면 → 이런 결과가 나와요" 흐름, ~어요/에요 어체
-- steps: 코딩 모르는 직장인이 그대로 따라할 수 있게. 각 단계 35자 이내. "Claude Code 앱을 열고" 같이 앱 조작 기준으로 서술.
-- prompt: [파일 경로], [회사명], [조건] 형식으로 독자가 바꿀 부분 명확히 표시. 실제로 동작하는 구체적 지시문.
-- 안심 문구 가끔 사용 ("코딩 몰라도 괜찮아요", "Python 설치 안 해도 돼요" 등)
+- task: "이런 상황 있죠? → {tool_name}로 이렇게 하면 → 이런 결과가 나와요" 흐름, ~어요/에요 어체
+- steps: 코딩 모르는 직장인이 그대로 따라할 수 있게. 각 단계 35자 이내. 실제로 존재하는 조작(입력창에 붙여넣기, 파일 드래그, 엔터)만 서술 — 버튼·메뉴 이름을 지어내지 말 것.
+- prompt 필드: [파일 경로], [회사명], [조건] 형식으로 독자가 바꿀 부분 명확히 표시. 실제로 동작하는 구체적 지시문만 작성. "코딩 몰라도 괜찮아요" 같은 안심 문구·설명은 절대 넣지 말 것 — prompt는 AI에게 줄 지시문이지 독자에게 하는 말이 아님.
+- task 또는 steps에는 안심 문구를 가끔 사용해도 좋음 ("코딩 몰라도 괜찮아요", "Python 설치 안 해도 돼요" 등). 단, tools에 pandas·matplotlib 등 로컬 설치가 필요한 항목을 넣었다면 "설치 안 해도 돼요" 문구는 쓰지 말 것 — 실제와 모순되면 안 됨.
 - difficulty가 claude-code이면 tools 첫 번째에 반드시 "Claude Code" 포함
 - 마크다운 기호(#, **, *) 사용 금지
 
@@ -313,4 +290,5 @@ JSON:"""
             result["steps"] = [_strip_md(s) if isinstance(s, str) else s for s in result["steps"]]
 
         result["category_name"] = selected_category["name"]
+        result["difficulty"] = selected_category["difficulty"]
         return result

@@ -18,7 +18,7 @@ from config.feeds import RSS_FEEDS, CRAWL_TARGETS
 from collector.rss_collector import RSSCollector
 from collector.gstack_crawler import GstackCrawler
 from collector.seen_store import load_seen, record_seen
-from summarizer.claude_summarizer import ClaudeSummarizer
+from summarizer.claude_summarizer import ClaudeSummarizer, ONBOARDING_TIP_CATEGORY
 from content_generator.newsletter import NewsletterGenerator
 from content_generator.linkedin import LinkedInGenerator
 from content_generator.threads import ThreadsGenerator
@@ -126,8 +126,10 @@ def main():
     trends = summarizer.generate_trends(articles)
     print("    → 완료")
 
-    # 직전 발송 카테고리 읽기 (연속 반복 방지)
+    # 최근 발송 카테고리 읽기 (연속 반복 방지)
+    TIP_HISTORY_SIZE = 4
     last_tip_file = TRENDS_DIR / "last_tip_category.txt"
+    is_first_tip_ever = not last_tip_file.exists()
     exclude_names = []
     if last_tip_file.exists():
         try:
@@ -135,11 +137,15 @@ def main():
         except Exception:
             pass
 
-    tip = summarizer.generate_tip(summarized, exclude_names=exclude_names)
+    tip = summarizer.generate_tip(
+        summarized,
+        exclude_names=exclude_names,
+        force_category_name=ONBOARDING_TIP_CATEGORY if is_first_tip_ever else None,
+    )
 
-    # 사용한 카테고리 저장 (최근 2개 유지) — 테스트 모드에서는 기록 안 함
+    # 사용한 카테고리 저장 (최근 TIP_HISTORY_SIZE개 유지, 롤링) — 테스트 모드에서는 기록 안 함
     if tip.get("category_name") and not test_to:
-        recent = exclude_names[-1:] + [tip["category_name"]]  # 직전 1개 + 이번
+        recent = (exclude_names + [tip["category_name"]])[-TIP_HISTORY_SIZE:]
         last_tip_file.write_text("\n".join(recent), encoding="utf-8")
 
     issue_file = TRENDS_DIR / "issue_count.txt"
