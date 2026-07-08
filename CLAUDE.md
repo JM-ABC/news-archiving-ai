@@ -129,11 +129,28 @@ CI(GitHub Actions)에서도 파이프라인 실행 전 테스트가 게이트로
 
 ### RSS 피드 추가
 - `config/feeds.py`의 `RSS_FEEDS`에 추가. 형식: `{"label": "이름", "region": "KR|GL", "url": "...", "max": 숫자}`
-- 추가 후 `python scripts/healthcheck.py --check-feeds`로 생존 확인.
+- 추가 후 `python scripts/healthcheck.py --check-feeds`로 생존 확인. RSS 후보 URL은 절대
+  추측하지 말고 실제로 다운로드해서 `<item>`/`<entry>`가 있는지, 최근 글 날짜가 파싱되는지
+  확인할 것 — 검색 결과에 나온 URL도 죽어있거나(410 등) 빈 피드인 경우가 흔하다.
+
+### 대형 AI 플랫폼(OpenAI·Google·Microsoft·Anthropic) 소식 우선순위
+- `config/feeds.py`의 `MAJOR_PLATFORM_LABELS`에 라벨을 등록하면 `main.py`의 `prioritize()`가
+  글로벌(GL) 쿼터 안에서 해당 라벨 기사를 먼저 채운다 (안정 정렬, 헤드라인 점수는 안 건드림 —
+  "일반 독자 유용성" 판단은 여전히 `summarize()`의 Claude 채점에 맡긴다).
+- 현재 등록된 소스: `OpenAI News`, `Google DeepMind`, `Google AI Blog`, `Microsoft AI News`
+  (모두 공식 RSS), `Anthropic News (비공식)` — **Anthropic은 공식 RSS가 없어 커뮤니티가
+  매일 스크래핑하는 비공식 피드를 씀. 예고 없이 끊길 수 있으니 healthcheck로 주기적 확인 필요.**
+- Google DeepMind·Microsoft AI News는 발행 주기가 느려 `--check-feeds`의 4일 윈도우에서
+  종종 `stale_feed`로 뜨는데, 발행 주기(월·수·금)와 겹치면 대부분 잡히므로 이 자체는 문제
+  아님 — 며칠 연속 0개일 때만 실제 이상으로 본다.
 
 ### gstack 크롤링 대상 추가
 - `config/feeds.py`의 `CRAWL_TARGETS`에 추가.
-- gstack 바이너리 없으면 `cd ~/.claude/skills/gstack && ./setup` 실행.
+- **현재 GitHub Actions 워크플로에 gstack 설치 스텝이 없어 CI에서는 `CRAWL_TARGETS`가
+  항상 0개를 반환한다** (로컬에 바이너리 없을 때도 동일 — `GSTACK_BINARY`가 `None`이면
+  조용히 건너뜀). gstack 바이너리 없으면 `cd ~/.claude/skills/gstack && ./setup` 실행,
+  CI에서 실제로 쓰려면 워크플로에 설치 스텝을 추가해야 한다. OpenAI·Google DeepMind는
+  이 문제 때문에 위 RSS_FEEDS로 대체했다.
 
 ### 기사 쿼터
 - `KR_MAX = 13`, `GL_MAX = 7`, `MIN_NEW_ARTICLES = 10` — `config/settings.py`에서 수정.

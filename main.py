@@ -14,7 +14,7 @@ from config.settings import (
     GSTACK_BINARY, TRENDS_DIR, OUTPUT_DIR,
     KR_MAX, GL_MAX, MIN_NEW_ARTICLES,
 )
-from config.feeds import RSS_FEEDS, CRAWL_TARGETS
+from config.feeds import RSS_FEEDS, CRAWL_TARGETS, MAJOR_PLATFORM_LABELS
 from collector.rss_collector import RSSCollector
 from collector.gstack_crawler import GstackCrawler
 from collector.seen_store import load_seen, record_seen
@@ -59,8 +59,13 @@ def _flag_value(flag: str) -> str:
 
 
 def prioritize(articles: list) -> list:
+    """국내는 수집 순서 그대로, 글로벌은 대형 AI 플랫폼(OpenAI·Google·Microsoft·
+    Anthropic) 소식을 안정 정렬로 앞세운 뒤 쿼터를 채운다. 헤드라인 선정 점수 자체는
+    건드리지 않는다 — "일반 독자 관점 유용성" 판단은 여전히 Claude 요약 단계에 맡긴다."""
     kr = [a for a in articles if a["region"] == "KR"][:KR_MAX]
-    gl = [a for a in articles if a["region"] == "GL"][:GL_MAX]
+    gl_all = [a for a in articles if a["region"] == "GL"]
+    gl_sorted = sorted(gl_all, key=lambda a: a.get("label") not in MAJOR_PLATFORM_LABELS)
+    gl = gl_sorted[:GL_MAX]
     return kr + gl
 
 
