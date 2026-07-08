@@ -14,7 +14,9 @@ RSS_FEEDS = [
     # 예고 없이 끊길 수 있으니 healthcheck --check-feeds로 주기적 생존 확인 필요.
     {"label": "Anthropic News (비공식)", "region": "GL", "url": "https://tim-hilde.github.io/anthropic-rss/rss.xml", "max": 3},
     # 국내 — 일반 독자가 접하기 쉬운 매체
-    {"label": "연합뉴스 IT", "region": "KR", "url": "https://www.yna.co.kr/RSS/it.xml", "max": 8},
+    # 연합뉴스는 더 이상 별도 IT 카테고리를 운영하지 않음(it.xml 등은 404) — 실제 살아있는
+    # 카테고리 중 AI·반도체 기업 소식이 섞여 나오는 "산업" 카테고리로 대체.
+    {"label": "연합뉴스 산업", "region": "KR", "url": "https://www.yna.co.kr/rss/industry.xml", "max": 8},
     {"label": "매일경제 IT", "region": "KR", "url": "https://www.mk.co.kr/rss/50400012/", "max": 6},
     {"label": "AI타임스", "region": "KR", "url": "https://www.aitimes.com/rss/allArticle.xml", "max": 5},
 ]
